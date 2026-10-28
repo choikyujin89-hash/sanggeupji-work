@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>목업: 스레드 시스템</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:'Malgun Gothic',sans-serif;display:flex;height:100vh;color:#222;background:#f7f8fa}
+.side{width:250px;background:#1f2430;color:#cfd3dc;overflow:auto;padding:14px 0;font-size:13.5px}.logo{color:#fff;font-weight:bold;padding:4px 18px 14px;font-size:15px}
+.g1{padding:10px 18px 4px;color:#8b93a5;font-size:11.5px;letter-spacing:.5px}.it{padding:7px 18px 7px 26px;cursor:pointer}.it:hover,.it.on{background:#2d3442;color:#fff}.it.top{padding-left:18px}
+.grp{padding:8px 18px;color:#fff;cursor:pointer;font-weight:bold}.soon{padding:6px 18px 6px 26px;color:#5d667a}
+.main{flex:1;overflow:auto;padding:26px 32px}h2{margin:0 0 6px;font-size:20px}h3{font-size:15px;margin:22px 0 8px}.d{color:#555}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12.5px}.v{font-size:16px;font-weight:bold;margin:4px 0}.card a,.links a{color:#03a04c;cursor:pointer;font-size:13px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:13.5px}td,th{border:1px solid #e6e6e6;padding:8px 10px;text-align:left}th{background:#f1f3f5}.g{color:#0a8f43;font-weight:bold}.r{color:#c0392b;font-weight:bold}
+.links{display:flex;gap:10px}.links a{background:#fff;border:1px solid #cfe8d6;border-radius:8px;padding:8px 12px}
+.steplbl{margin-top:14px;font-weight:bold}.tasks{background:#fff;border-radius:10px;padding:14px 14px 14px 36px;line-height:2}.ai{display:inline-block;background:#e3f7ea;color:#0a8f43;border-radius:8px;font-size:11px;padding:0 7px;margin-right:8px}
+.ph{margin-top:14px;background:#fff;border:2px dashed #ccc;border-radius:10px;padding:40px;text-align:center;color:#999}.crumb{color:#999;font-size:12px;margin-bottom:4px}.y{color:#b7791f;font-weight:bold}.alert{background:#fff1f0;border-left:4px solid #e5484d;padding:10px 14px;border-radius:8px;margin:10px 0;font-size:13.5px}.tabs{display:flex;gap:6px;margin:10px 0}.tabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.tabs span.on{background:#03c75a;color:#fff;border-color:#03c75a}td{font-size:13px}*{box-sizing:border-box}
+.logo{color:#fff;font-weight:bold;padding:4px 18px 12px;font-size:15px}.g1{padding:10px 18px 4px;color:#8b93a5;font-size:11px}.it{padding:6px 18px 6px 26px}.it.on{background:#2d3442;color:#fff}.grp{padding:8px 18px;color:#fff;font-weight:bold}
+h2{margin:0 0 4px;font-size:20px}h3{font-size:15px;margin:20px 0 8px}.sub{color:#888;font-size:12px;font-weight:normal}.crumb{color:#999;font-size:12px;margin-bottom:4px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}.card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12px}.v{font-size:17px;font-weight:bold;margin:3px 0}.s{font-size:12px;color:#555}.lk{color:#03a04c;font-size:12.5px;margin-top:4px;display:inline-block}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:12.5px}td,th{border-bottom:1px solid #eee;padding:7px 9px;text-align:left}th{background:#f1f3f5;border-bottom:1px solid #ddd}
+.neg{color:#c0392b;font-weight:bold}.pos{color:#0a8f43;font-weight:bold}.zero{color:#b7791f;font-weight:bold}
+.tag{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold}.t1{background:#e3f7ea;color:#0a8f43}.t2{background:#fde2e2;color:#c0392b}.t3{background:#fff3cd;color:#9a6b00}.t4{background:#e8eefc;color:#2f5bd3}
+.todo td{vertical-align:top}.btn{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff}.btn.rec{border-color:#03c75a;color:#03a04c;font-weight:bold}
+.rule{background:#eef6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px}
+.rtabs{display:flex;gap:6px;margin:10px 0 4px}.rtabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.rtabs span.on{background:#222;color:#fff;border-color:#222}
+.rgroup{background:#fff;border-radius:10px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);overflow:hidden}.rhead{padding:10px 14px;font-weight:bold;background:#fbfbfc;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.rhead .sub{font-weight:normal}
+.lbl{padding:8px 14px 4px;font-size:12px;color:#666;font-weight:bold}.lk{cursor:pointer}
+
+h2{margin:0 0 4px;font-size:20px}h3{font-size:15px;margin:20px 0 8px}.sub{color:#888;font-size:12px;font-weight:normal}.crumb{color:#999;font-size:12px;margin-bottom:4px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}.card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12px}.v{font-size:17px;font-weight:bold;margin:3px 0}.s{font-size:12px;color:#555}.lk{color:#03a04c;font-size:12.5px;margin-top:4px;display:inline-block}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:12.5px}td,th{border-bottom:1px solid #eee;padding:7px 9px;text-align:left}th{background:#f1f3f5;border-bottom:1px solid #ddd}
+.neg{color:#c0392b;font-weight:bold}.pos{color:#0a8f43;font-weight:bold}.zero{color:#b7791f;font-weight:bold}
+.tag{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold}.t1{background:#e3f7ea;color:#0a8f43}.t2{background:#fde2e2;color:#c0392b}.t3{background:#fff3cd;color:#9a6b00}.t4{background:#e8eefc;color:#2f5bd3}
+.todo td{vertical-align:top}.btn{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff}.btn.rec{border-color:#03c75a;color:#03a04c;font-weight:bold}
+.rule{background:#eef6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px}
+.rtabs{display:flex;gap:6px;margin:10px 0 4px}.rtabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.rtabs span.on{background:#222;color:#fff;border-color:#222}
+.rgroup{background:#fff;border-radius:10px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);overflow:hidden}.rhead{padding:10px 14px;font-weight:bold;background:#fbfbfc;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.rhead .sub{font-weight:normal}
+.lbl{padding:8px 14px 4px;font-size:12px;color:#666;font-weight:bold}.stabs{display:flex;gap:6px;margin:12px 0 8px}.stabs span{padding:6px 14px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:13px}.stabs span.on{background:#222;color:#fff;border-color:#222}.stabs b{margin-left:4px}
+.steps{display:flex;gap:4px}.steps i{font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;background:#eee;color:#999}.steps i.done{background:#e3f7ea;color:#0a8f43}.steps i.now{background:#222;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.box{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.box h4{margin:0 0 8px;font-size:14px}
+.warn{background:#fff1f0;border-left:4px solid #e5484d;border-radius:8px;padding:10px 14px;font-size:13px;margin:12px 0}.kv td{border:none;padding:4px 6px}.kv td:first-child{color:#777;width:130px}
+.tl{list-style:none;padding:0;margin:0;font-size:13px}.tl li{padding:6px 0 6px 18px;border-left:2px solid #cfe8d6;margin-left:6px;position:relative}.tl li:before{content:'';position:absolute;left:-6px;top:10px;width:10px;height:10px;border-radius:50%;background:#03c75a}.tl b{display:inline-block;width:46px;color:#555}
+.hdr{display:flex;align-items:center;gap:10px}.mini{font-size:12.5px;color:#555}.flow5{display:flex;gap:0;margin:12px 0}.flow5 div{flex:1;padding:9px 10px;background:#eceef1;color:#888;font-size:12.5px;text-align:center;border-right:2px solid #f7f8fa}.flow5 div.done{background:#e3f7ea;color:#0a8f43}.flow5 div.now{background:#222;color:#fff;font-weight:bold}.flow5 div:first-child{border-radius:8px 0 0 8px}.flow5 div:last-child{border-radius:0 8px 8px 0}
+.stage{background:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.stage.future{opacity:.6}.stage h4{margin:0 0 8px;font-size:14.5px;display:flex;gap:8px;align-items:center}
+.chk{list-style:none;padding:0;margin:6px 0;font-size:13px;line-height:1.9}.chk li:before{content:'☐ ';color:#999}.chk li.ok:before{content:'☑ ';color:#0a8f43}.who{display:inline-block;font-size:11px;padding:0 6px;border-radius:6px;margin-right:6px}.ai{background:#e3f7ea;color:#0a8f43}.me{background:#e8eefc;color:#2f5bd3}.st{background:#f1e8fc;color:#7a3fc4}
+.inp{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:3px 10px;min-width:110px;background:#fffdf3}.calc{background:#f7faf8;border:1px dashed #9fd3b0;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:8px}
+.steps6{display:flex;gap:3px;white-space:nowrap}.steps6 i{white-space:nowrap;font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;background:#eee;color:#999}.steps6 i.done{background:#e3f7ea;color:#0a8f43}.steps6 i.now{background:#222;color:#fff}.t0{background:#eef0f3;color:#666}
+.scr{display:none}.scr.on{display:block}
+.flow{display:flex;gap:0;align-items:stretch;margin:12px 0;flex-wrap:wrap}
+.flow .st{background:#fff;border:1px solid #e3e6ea;padding:8px 12px;min-width:92px;text-align:center;font-size:12px;position:relative;margin-right:14px;border-radius:8px}
+.flow .st b{color:#222;display:block;font-size:18px;margin-top:2px}.flow .st:after{content:'→';position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:#aaa}
+.flow .st:last-child:after{content:''}.flow .st.hot{border-color:#03c75a;background:#f3fbf6}.flow .st.warn{border-color:#f0b429;background:#fffaf0}
+.who{display:inline-block;font-size:11px;border-radius:8px;padding:0 7px;white-space:nowrap}.who.ai{background:#e3f7ea;color:#0a8f43}.who.me{background:#e8eefc;color:#2f5bd3}.who.fl{background:#f3e8ff;color:#7c3aed}
+.chk{display:inline-block;width:16px;height:16px;border:1.5px solid #bbb;border-radius:4px;vertical-align:middle;margin-right:6px;text-align:center;line-height:13px;font-size:12px}.chk.done{background:#03c75a;border-color:#03c75a;color:#fff}
+table{word-break:keep-all}th{white-space:nowrap}td.nw{white-space:nowrap}
+.prop{background:#fffaf0;border-left:4px solid #f0b429;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;line-height:1.7}
+.ex{display:inline-block;background:#eee;color:#666;border-radius:6px;font-size:10.5px;padding:0 6px;margin-left:6px;vertical-align:middle}
+.mini{font-size:11px;color:#8a93a6}
+</style></head><body><div class="side"><div class="logo">회사 업무 사이트</div><div class="it top" data-k="home">🏠 전체 현황</div><div class="it top" data-k="r">📦 R(제품) 목록</div><div class="it top" data-k="my">👤 내 업무</div><div class="it top" data-k="order">📋 업무 지시</div>
+<div class="g1">채널 시스템</div><div class="grp"><span>▸</span> 파워컨텐츠 시스템</div>
+<div class="grp"><span>▾</span> 스레드 시스템</div><div class="it on" data-k="th-today">오늘 할 일</div><div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div><div class="it" data-k="th-ref">1. 레퍼런스</div><div class="it" data-k="th-post">2. 원고 배정·발행</div><div class="it" data-k="th-view">3. 조회수 체크</div><div class="it" data-k="th-pay">4. 주정산</div><div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div><div class="it" data-k="th-fl">프리랜서</div><div class="it" data-k="th-set">설정</div>
+<div class="grp" style="color:#5d667a">+ 채널 추가 (메타 등)</div></div><div class="main"><div class="scr" id="th-today">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 오늘 할 일</div><h2>스레드 · 오늘 할 일 <span class="ex">예시 데이터</span></h2>
+<div class="sub">노션 "사용 매뉴얼"의 매일·수시·월요일 일을 한 화면에 모았어요. 끝나면 체크가 저절로 바뀌어요.</div>
+<div class="cards">
+ <div class="card"><div class="k">활동 중 프리랜서</div><div class="v">3명</div><div class="s">휴식 0 · 퇴사 0</div></div>
+ <div class="card"><div class="k">오늘 배정</div><div class="v">9건</div><div class="s">전환글 6 · 일상글 3</div></div>
+ <div class="card red"><div class="k">검수 기다리는 원고</div><div class="v">6건</div><div class="s">발행요청 전에 꼭 확인</div></div>
+ <div class="card"><div class="k">이번 주 정산 예정</div><div class="v">24,400원</div><div class="s">지급액 23,595원 (월요일)</div></div>
+</div>
+<h3>매일 아침 <span class="sub">일요일 포함 · 따로 공지한 휴무일만 쉼</span></h3>
+<table class="todo"><tr><th style="width:36px"></th><th>할 일</th><th>누가</th><th>결과</th><th></th></tr>
+<tr><td><span class="chk done">✓</span></td><td>셀프배포(일상글) 만들기 · 프리랜서마다 1개</td><td><span class="who ai">AI</span></td><td class="mini">3건 생성 → "검토요청" (07:02)</td><td></td></tr>
+<tr><td><span class="chk done">✓</span></td><td>전환 원고 배정 · 프리랜서마다 2개 · 오늘은 수요일 → <b>레퍼런스 1~15번</b></td><td><span class="who ai">AI</span></td><td class="mini">6건 생성 → "발행요청대기" (07:04)</td><td></td></tr>
+<tr><td><span class="chk"></span></td><td><b>검수</b>: 제목 주제와 본문이 맞는지, 본문 맨 위 "원본:" 번호가 제목과 같은지</td><td><span class="who me">대표님·직원2</span></td><td class="mini">6건 중 0건 확인</td><td><span class="btn rec">검수하러 가기</span></td></tr>
+<tr><td><span class="chk"></span></td><td>검수 끝난 원고 "발행요청"으로 바꾸기 → 프리랜서 개인 페이지에 보임</td><td><span class="who me">사람</span> 누르면 <span class="who ai">AI</span></td><td class="mini">검수 후 가능</td><td><span class="btn">한 번에 발행요청</span></td></tr>
+<tr><td><span class="chk"></span></td><td>배포 공지방에 공지 붙여 넣기</td><td><span class="who me">사람</span></td><td class="mini">"오늘도 컨텐츠 배정되었습니다 🙏 … 어제 올린 전환글은 보관하고 오늘 원고 올려주세요"</td><td><span class="btn">문구 복사</span></td></tr>
+</table>
+<h3>하루 1~2번 (수시)</h3>
+<table class="todo"><tr><th style="width:36px"></th><th>할 일</th><th>누가</th><th>지금</th><th></th></tr>
+<tr><td><span class="chk"></span></td><td>발행완료 원고 조회수 입력</td><td><span class="who me">사람</span> → 나중에 <span class="who ai">AI</span></td><td class="mini">입력 필요 4건</td><td><span class="btn rec">조회수 체크</span></td></tr>
+<tr><td><span class="chk"></span></td><td>조회수 분류 (발행 2일 지난 전환글) · 300 이상 → 정산대기중 / 미만 → 보관(재업로드)</td><td><span class="who ai">AI</span></td><td class="mini">대상 5건</td><td></td></tr>
+<tr><td><span class="chk"></span></td><td>재업로드 요청 카톡 보내기</td><td><span class="who me">사람</span></td><td class="mini">박다뷰 1건 · 김다이 1건</td><td><span class="btn">프리랜서별 문구 복사</span></td></tr>
+<tr><td><span class="chk"></span></td><td>댓글 관리 끝난 원고 "정산전"으로</td><td><span class="who fl">프리랜서</span> → <span class="who me">확인</span></td><td class="mini">정산대기중 3건</td><td></td></tr>
+</table>
+<h3>매주 월요일 · 주정산</h3>
+<table class="todo"><tr><td style="width:36px"><span class="chk"></span></td><td>배포자별 집계 확인 → 계좌이체 → "지급완료 처리"</td><td><span class="who ai">AI 집계</span> <span class="who me">사람 이체</span></td><td class="mini">다음 정산 11/02(월)</td><td><span class="btn rec">주정산</span></td></tr></table>
+<div class="prop"><b>제 제안: 노션과 사이트 역할 나누기</b><br>
+· <b>프리랜서 작업 공간은 노션 그대로</b> 둬요. 프리랜서는 개인 노션 페이지에서 원고를 보고, 발행 URL 입력과 "발행완료"까지만 해요. 20명 넘게 사이트 계정을 만들 필요가 없어요.<br>
+· <b>사이트는 관리자 화면</b>이에요. 노션 원고 DB를 매일 읽어 와서 오늘 할 일, 조회수, 정산, 레퍼런스 성과를 한눈에 보여 줘요.<br>
+· <b>주민번호·계좌는 사이트에 저장하지 않아요.</b> 지금처럼 노션 "프리랜서_관리_DB"(비공개)에만 둬요.<br>
+· 지금 노션 AI에 프롬프트를 붙여 넣는 4가지 일(셀프배포·배정·조회수 분류·주정산)은 나중에 어사이드가 정해진 시간에 자동으로 하게 바꿀 수 있어요.</div>
+</div><div class="scr" id="th-ref">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 1. 레퍼런스</div><h2>1. 레퍼런스 <span class="ex">예시 데이터</span></h2>
+<div class="sub">회사가 쓴 원본 원고 1~30번. 프리랜서에게 돌려 가며 배정해요 (월·수·금·일 1~15번 / 화·목·토 16~30번, 사람마다 한 칸씩 밀기).</div>
+<div class="rtabs"><span class="on">전체 30</span><span>1~15번 묶음</span><span>16~30번 묶음</span><span>교체 후보 3</span><span style="margin-left:auto;background:#03c75a;color:#fff;border-color:#03c75a">+ 레퍼런스 추가</span></div>
+<table><tr><th>번호</th><th>제목 · 주제</th><th>형식</th><th>연결 R</th><th>배정 횟수</th><th>평균 조회수</th><th>300 넘긴 비율</th><th>판단</th></tr>
+<tr><td>1</td><td><b>[댓글형]전환 / 다이어트 / 레퍼런스1</b><div class="mini">주제: 식단 없이 뱃살 빠진 후기</div></td><td class="nw">댓글형</td><td class="nw"><span class="lk">R 연결 전</span></td><td>12</td><td><b>1,840</b></td><td class="pos">83%</td><td><span class="tag t1">잘 됨</span></td></tr>
+<tr><td>2</td><td><b>[직관형]전환 / 다이어트 / 레퍼런스2</b><div class="mini">주제: 마운자로 대신 찾은 방법</div></td><td class="nw">직관형</td><td class="nw"><span class="lk">R 연결 전</span></td><td>12</td><td>620</td><td>58%</td><td><span class="tag t0">보통</span></td></tr>
+<tr><td>3</td><td><b>[셔플형]전환 / 뷰티 / 레퍼런스3</b><div class="mini">주제: 피부과 대신 홈케어</div></td><td class="nw">셔플형</td><td class="nw"><span class="lk">R 연결 전</span></td><td>11</td><td>140</td><td class="neg">18%</td><td><span class="tag t2">교체 후보</span></td></tr>
+<tr><td>…</td><td colspan="7" class="mini">30번까지</td></tr></table>
+<div class="rule">평균 조회수와 "300 넘긴 비율"로 <b>잘 되는 레퍼런스와 바꿀 레퍼런스</b>가 보여요. 바꿀 때는 같은 번호에 새 원고를 넣어요(번호는 1~30, 겹치지 않게). "연결 R"을 넣으면 R 목록의 그 제품 화면에 스레드 성과가 같이 쌓여요.</div>
+</div><div class="scr" id="th-post">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 2. 원고 배정·발행</div><h2>2. 원고 배정·발행 <span class="ex">예시 데이터</span></h2>
+<div class="sub">원고 한 건이 지나가는 길이에요. 칸을 누르면 그 상태의 원고만 아래에 나와요.</div>
+<div class="flow">
+ <div class="st">레퍼런스<b>30</b></div><div class="st warn">발행요청대기<b>6</b><span class="mini">검수 필요</span></div><div class="st">발행요청<b>4</b><span class="mini">프리랜서 발행 전</span></div><div class="st hot">발행완료<b>8</b><span class="mini">조회수 입력</span></div><div class="st">정산대기중<b>3</b><span class="mini">댓글 관리 중</span></div><div class="st">정산전<b>18</b></div><div class="st">정산완료<b>18</b></div>
+</div>
+<div class="flow" style="margin-top:0"><div class="st">일상글 검토요청<b>3</b></div><div class="st">보관(재업로드)<b>2</b></div><div class="st">반려<b>0</b><span class="mini">정산 안 함</span></div></div>
+<div class="rtabs"><span class="on">발행요청대기 6</span><span>오늘 배정</span><span>프리랜서별</span><span>형식별</span></div>
+<table><tr><th>배정일</th><th>원고 제목</th><th>원본</th><th>프리랜서</th><th>형식</th><th>검수</th><th></th></tr>
+<tr><td class="nw">10-28</td><td><b>26-10-28/ [댓글형]전환 / 다이어트 / 김다이</b></td><td class="nw">레퍼런스1</td><td class="nw">김다이</td><td class="nw">댓글형</td><td><span class="tag t1">원본 일치</span></td><td><span class="btn rec">발행요청</span><span class="btn">노션에서 열기 ↗</span></td></tr>
+<tr><td class="nw">10-28</td><td><b>26-10-28/ [직관형]전환 / 뷰티 / 이뷰티</b></td><td class="nw">레퍼런스3</td><td class="nw">이뷰티</td><td class="nw">직관형</td><td><span class="tag t2">주제 다름</span><div class="mini">제목은 뷰티, 본문은 다이어트(레퍼런스2)</div></td><td><span class="btn">다시 배정</span><span class="btn">노션에서 열기 ↗</span></td></tr>
+<tr><td class="nw">10-28</td><td><b>26-10-28/ [셔플형]전환 / 다이어트 뷰티 / 박다뷰</b></td><td class="nw">레퍼런스4</td><td class="nw">박다뷰</td><td class="nw">셔플형</td><td><span class="tag t1">원본 일치</span></td><td><span class="btn rec">발행요청</span><span class="btn">노션에서 열기 ↗</span></td></tr>
+</table>
+<div class="rule">노션 테스트에서 AI 배정 원고 6건 중 2건이 <b>다른 레퍼런스 본문</b>으로 섞였어요. 그래서 사이트가 "제목 주제 ↔ 본문 맨 위 원본 번호"를 먼저 대조해서 <b>주제 다름</b>을 빨간색으로 띄워요. 사람은 빨간 것만 보면 돼요.</div>
+</div><div class="scr" id="th-view">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 3. 조회수 체크</div><h2>3. 조회수 체크 <span class="ex">예시 데이터</span></h2>
+<div class="sub">발행 2일 지난 전환글만 판정해요. <b>300 이상 → 정산대기중</b>(댓글 관리 후 정산전) · <b>300 미만 → 보관 후 재업로드</b> 요청 · 일상글은 판정 안 함</div>
+<div class="cards"><div class="card red"><div class="k">조회수 입력 필요</div><div class="v">4건</div></div><div class="card"><div class="k">판정 대상 (2일 지남)</div><div class="v">5건</div></div><div class="card"><div class="k">이번 주 300 넘긴 비율</div><div class="v">71%</div><div class="s">전환글 24건 중 17건</div></div><div class="card"><div class="k">재업로드 요청</div><div class="v">2건</div></div></div>
+<h3>판정 대상</h3>
+<table><tr><th>발행일</th><th>원고</th><th>프리랜서</th><th>발행 URL</th><th>조회수</th><th>판정</th><th></th></tr>
+<tr><td class="nw">10-25</td><td>26-10-25/ [댓글형]전환 / 다이어트 / 김다이</td><td class="nw">김다이</td><td><span class="lk">열기 ↗</span></td><td><b>5,200</b></td><td><span class="tag t1">정산대기중</span></td><td class="mini">댓글 관리 후 정산전</td></tr>
+<tr><td class="nw">10-25</td><td>26-10-25/ [직관형]전환 / 다이어트 / 박다뷰</td><td class="nw">박다뷰</td><td><span class="lk">열기 ↗</span></td><td><b>80</b></td><td><span class="tag t2">보관 · 재업로드</span></td><td><span class="btn">카톡 문구 복사</span></td></tr>
+<tr><td class="nw">10-26</td><td>26-10-26/ [셔플형]전환 / 뷰티 / 이뷰티</td><td class="nw">이뷰티</td><td><span class="lk">열기 ↗</span></td><td><span class="inp" style="display:inline-block;border:1px solid #ccc;border-radius:6px;padding:2px 10px;color:#aaa">입력</span></td><td><span class="tag t3">입력 필요</span></td><td></td></tr>
+</table>
+<div class="prop">지금은 사람이 스레드 글을 열어 조회수를 보고 적어요. <b>나중에 어사이드가 하루 1번 발행 URL을 열어 조회수를 자동으로 적는 것</b>도 가능해 보여요. 확인해 볼게요.</div>
+</div><div class="scr" id="th-pay">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 4. 주정산</div><h2>4. 주정산 <span class="ex">예시 데이터</span></h2>
+<div class="sub">매주 월요일 · <b>배포자(노션 계정) 기준</b>으로 "정산전" 원고를 세요. 같은 사람이 두 줄로 등록돼 있으면 빨간색으로 알려 줘요.</div>
+<div style="display:flex;gap:8px;align-items:center;margin:12px 0"><span class="btn">2026-11-02 (월) ▾</span><span class="sub">정산 대상: 정산전 원고 18건 · 2명 (+확인 필요 1명)</span><span style="margin-left:auto" class="btn rec">집계 확인 → 정산 확정</span><span class="btn">지급완료 처리</span></div>
+<table><tr><th>이름</th><th>정산전 원고</th><th>댓글형</th><th>블로그형</th><th>주관리비</th><th>공제 전</th><th>3.3%</th><th>지급액</th><th>상태</th></tr>
+<tr><td><b>김다이</b></td><td>16</td><td>6</td><td>0</td><td>10,000</td><td>23,000</td><td>759</td><td><b>22,241</b></td><td><span class="tag t3">지급예정</span></td></tr>
+<tr><td><b>이뷰티</b></td><td>2</td><td>0</td><td>0</td><td class="mini">10건 미만</td><td>1,400</td><td>46</td><td><b>1,354</b></td><td><span class="tag t3">지급예정</span></td></tr>
+<tr><td><b>박다뷰</b></td><td colspan="7" style="color:#c0392b">⚠ 김다이와 같은 노션 계정(배포자)이에요. 중복 정산 막으려고 김다이에 합쳤어요. 확인해 주세요.</td><td><span class="tag t2">확인 필요</span></td></tr>
+<tr style="background:#fafafa"><td><b>합계</b></td><td>18</td><td>6</td><td>0</td><td>10,000</td><td>24,400</td><td>805</td><td><b>23,595</b></td><td></td></tr></table>
+<div class="rule">계산: 원고 700원 · 댓글형 +300원 · 블로그형 1,000원 · 정산전 원고 10건 이상이면 주관리비 10,000원 · 3.3% 공제. (노션 "주정산 계산 기준"과 같아요. 블로그형 1,000원은 노션에도 추정값이라고 적혀 있어요.)<br>계좌번호는 이 화면에 안 나와요. 이체할 때 노션 비공개 DB에서 보세요.</div>
+</div><div class="scr" id="th-fl">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 프리랜서</div><h2>프리랜서 <span class="ex">예시 데이터</span></h2>
+<div class="sub">파워컨텐츠의 "계정·외주"에 해당해요. 개인정보(주민번호·계좌·연락처)는 사이트에 없어요.</div>
+<div class="rtabs"><span class="on">활동중 3</span><span>휴식 0</span><span>퇴사 0</span><span>우수 스레더 후보 1</span><span style="margin-left:auto;background:#03c75a;color:#fff;border-color:#03c75a">+ 새 프리랜서 받기</span></div>
+<table><tr><th>이름</th><th>스레드 아이디</th><th>담당 카테고리</th><th>시작일</th><th>이번 주 발행/배정</th><th>평균 조회수</th><th>300 넘긴 비율</th><th>재업로드</th><th>메모</th></tr>
+<tr><td><b>김다이</b> <span class="tag t1">우수 후보</span></td><td>@dai_diet</td><td>다이어트</td><td>10-25</td><td>15 / 15</td><td><b>1,240</b></td><td class="pos">87%</td><td>1</td><td class="mini">댓글 관리 빠름</td></tr>
+<tr><td><b>박다뷰</b></td><td>@daview</td><td>다이어트 뷰티</td><td>10-25</td><td>3 / 3</td><td>277</td><td>33%</td><td>1</td><td></td></tr>
+<tr><td><b>이뷰티</b></td><td>@ebeauty</td><td>뷰티</td><td>10-25</td><td>5 / 6</td><td>250</td><td>40%</td><td>0</td><td class="mini">1건 미발행</td></tr></table>
+<div class="rule"><b>"+ 새 프리랜서 받기"</b>를 누르면 노션 매뉴얼 4번 순서가 체크리스트로 나와요: 알바몬 공고 확인 → 온보딩 멘트 1~6 → 개인정보는 노션 비공개 DB에만 → 개인 페이지 복제 → 노션 공유 3곳 → 공개용 DB 행 추가 → 카톡 공지.<br>우수 스레더(매주 2명, 상금 1만 원)는 발행 수·조회수·300 넘긴 비율로 후보를 먼저 골라 드려요. 최종 선정은 대표님이 해요.</div>
+</div><div class="scr" id="th-set">
+<div class="crumb">회사 업무 사이트 › 스레드 시스템 › 설정</div><h2>설정</h2>
+<div class="sub">노션에 흩어진 숫자를 한곳에 모았어요. 여기서 바꾸면 AI 실행 규칙도 같이 바뀌어요.</div>
+<table><tr><th>항목</th><th>지금 값</th><th>근거</th></tr>
+<tr><td>하루 배정량</td><td><b>일상글 1 + 전환글 2</b> (계정 활성화 전 1주일: 일상 2 + 전환 1)</td><td class="mini">강의 · 대표님 결정 10-27</td></tr>
+<tr><td>레퍼런스 로테이션</td><td><b>월·수·금·일 1~15번 / 화·목·토 16~30번</b>, 사람마다 한 칸씩</td><td class="mini">강의 19:03</td></tr>
+<tr><td>휴무일</td><td>일요일도 배정. 따로 공지한 날만 쉼</td><td class="mini">대표님 결정 10-26</td></tr>
+<tr><td>조회수 기준</td><td><b>300</b> (발행 2일 지난 전환글)</td><td class="mini">대표님 결정 10-26 (강의 원문 100)</td></tr>
+<tr><td>단가</td><td>원고 700 · 댓글형 +300 · 블로그형 1,000 · 주관리비 10,000 (정산전 10건 이상) · 3.3% 공제</td><td class="mini">강의 정산 화면 (블로그형은 추정)</td></tr>
+<tr><td>발행 규칙 (프리랜서 안내)</td><td>직접 타이핑 · 글 간격 1시간 이상 · 예약발행 금지 · 전날 전환글은 보관 후 새 원고</td><td class="mini">운영 규칙 4번</td></tr></table>
+</div></div>
+<script>function show(k){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===k));document.querySelectorAll('.side .it').forEach(i=>i.classList.toggle('on',i.dataset.k===k));document.querySelector('.main').scrollTop=0;}
+document.querySelectorAll('.side .it[data-k^="th-"]').forEach(i=>i.onclick=()=>show(i.dataset.k));show('th-today');</script></body></html>
