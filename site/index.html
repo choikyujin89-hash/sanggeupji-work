@@ -490,7 +490,7 @@ function viewThToday(){ thView(()=>{
   const P=THD.posts, t=THD.today, act=THD.fl.filter(f=>f.status==='활동중'), g=rotGroup(t), RR=RULE();
   const hol=THD.hol.find(h=>h.day===t);
   const wd=new Date(t+'T00:00:00Z').getUTCDay(); const dn='일월화수목금토'[wd];
-  const made=m=>P.filter(p=>p.mode===m&&p.status!=='래퍼런스'&&(p.assign_day===t||kstDay(p.created_time)===t)).length;
+  const made=m=>P.filter(p=>p.mode===m&&p.status!=='래퍼런스'&&(isSite(p)?p.assign_day===t:kstDay(p.created_time)===t)).length;
   const self=made('일상컨텐츠'), conv=made('전환컨텐츠');
   const need=act.reduce((s,f)=>{ const q=flQuota(f,t); s.d+=q.daily; s.c+=q.conv; return s; },{d:0,c:0});
   const wait=P.filter(p=>p.status==='발행요청대기').length;
@@ -756,7 +756,7 @@ async function flToday(){
   if(!L.length){ $('#mb').innerHTML=h+'<div class="empty">지금 올릴 원고가 없어요. 아침에 배정되면 여기 나와요.</div>'; return; }
   h+=L.map(p=>'<div class="box" style="margin-top:14px" id="fp_'+p.id+'"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+thTitle(p.title)+'</b><span class="tag '+(p.status==='보관(재업로드대기)'?'t2':p.mode==='일상컨텐츠'?'t0':'t1')+'">'+(p.status==='보관(재업로드대기)'?'재업로드 요청':p.mode==='일상컨텐츠'?'일상글':'전환글')+'</span></div>'
     +(p.status==='보관(재업로드대기)'?'<div class="rule" style="border-color:#f5c26b;background:#fff8e8">조회수가 기준보다 낮았어요. 이전 글을 보관하고 다시 올린 뒤 새 주소를 넣어 주세요.'+(p.url?' (이전 주소: <a href="'+esc(p.url)+'" target="_blank" rel="noopener">열기</a>)':'')+'</div>':'')
-    +bodyHtml(p.body)+imgsHtml(p.images)+(p.comment_script?'<div class="sub" style="margin-top:8px">댓글 대본</div>'+bodyHtml(p.comment_script):'')
+    +bodyHtml(String(p.body||'').replace(/^\s*원본:[^\n]*\n?/,''))+imgsHtml(p.images)+(p.comment_script?'<div class="sub" style="margin-top:8px">댓글 대본</div>'+bodyHtml(p.comment_script):'')
     +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><input placeholder="올린 스레드 글 주소 (https://www.threads.com/@아이디/post/…)" data-furl="'+p.id+'" style="flex:1;min-width:240px"><button class="pbtn" data-fpub="'+p.id+'">발행했어요</button></div></div>').join('');
   $('#mb').innerHTML=h; fillImgs($('#mb'));
   document.querySelectorAll('[data-fpub]').forEach(b=>b.onclick=async()=>{ const id=b.dataset.fpub, url=document.querySelector('[data-furl="'+id+'"]').value.trim(); if(!url){ toast('올린 글 주소를 넣어 주세요'); return; } if(!TH_URL_RE.test(url)){ toast('스레드 글 주소가 아니에요. 글의 "링크 복사"로 받은 주소를 넣어 주세요'); return; } b.disabled=true; const {error}=await sb.rpc('th_publish',{p_post:id,p_url:url}); b.disabled=false; if(error){ if(await expired(error)) return; toast(error.message); return; } toast('발행 완료로 바꿨어요. 수고하셨어요!'); flToday(); });
