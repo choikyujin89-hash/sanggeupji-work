@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>회사 업무 사이트</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+
+*{box-sizing:border-box}body{margin:0;font-family:'Malgun Gothic',sans-serif;display:flex;height:100vh;color:#222;background:#f7f8fa}
+.side{width:250px;background:#1f2430;color:#cfd3dc;overflow:auto;padding:14px 0;font-size:13.5px}.logo{color:#fff;font-weight:bold;padding:4px 18px 14px;font-size:15px}
+.g1{padding:10px 18px 4px;color:#8b93a5;font-size:11.5px;letter-spacing:.5px}.it{padding:7px 18px 7px 26px;cursor:pointer}.it:hover,.it.on{background:#2d3442;color:#fff}.it.top{padding-left:18px}
+.grp{padding:8px 18px;color:#fff;cursor:pointer;font-weight:bold}.soon{padding:6px 18px 6px 26px;color:#5d667a}
+.main{flex:1;overflow:auto;padding:26px 32px}h2{margin:0 0 6px;font-size:20px}h3{font-size:15px;margin:22px 0 8px}.d{color:#555}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12.5px}.v{font-size:16px;font-weight:bold;margin:4px 0}.card a,.links a{color:#03a04c;cursor:pointer;font-size:13px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:13.5px}td,th{border:1px solid #e6e6e6;padding:8px 10px;text-align:left}th{background:#f1f3f5}.g{color:#0a8f43;font-weight:bold}.r{color:#c0392b;font-weight:bold}
+.links{display:flex;gap:10px}.links a{background:#fff;border:1px solid #cfe8d6;border-radius:8px;padding:8px 12px}
+.steplbl{margin-top:14px;font-weight:bold}.tasks{background:#fff;border-radius:10px;padding:14px 14px 14px 36px;line-height:2}.ai{display:inline-block;background:#e3f7ea;color:#0a8f43;border-radius:8px;font-size:11px;padding:0 7px;margin-right:8px}
+.ph{margin-top:14px;background:#fff;border:2px dashed #ccc;border-radius:10px;padding:40px;text-align:center;color:#999}.crumb{color:#999;font-size:12px;margin-bottom:4px}.y{color:#b7791f;font-weight:bold}.alert{background:#fff1f0;border-left:4px solid #e5484d;padding:10px 14px;border-radius:8px;margin:10px 0;font-size:13.5px}.tabs{display:flex;gap:6px;margin:10px 0}.tabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.tabs span.on{background:#03c75a;color:#fff;border-color:#03c75a}td{font-size:13px}*{box-sizing:border-box}
+.logo{color:#fff;font-weight:bold;padding:4px 18px 12px;font-size:15px}.g1{padding:10px 18px 4px;color:#8b93a5;font-size:11px}.it{padding:6px 18px 6px 26px}.it.on{background:#2d3442;color:#fff}.grp{padding:8px 18px;color:#fff;font-weight:bold}
+h2{margin:0 0 4px;font-size:20px}h3{font-size:15px;margin:20px 0 8px}.sub{color:#888;font-size:12px;font-weight:normal}.crumb{color:#999;font-size:12px;margin-bottom:4px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}.card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12px}.v{font-size:17px;font-weight:bold;margin:3px 0}.s{font-size:12px;color:#555}.lk{color:#03a04c;font-size:12.5px;margin-top:4px;display:inline-block}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:12.5px}td,th{border-bottom:1px solid #eee;padding:7px 9px;text-align:left}th{background:#f1f3f5;border-bottom:1px solid #ddd}
+.neg{color:#c0392b;font-weight:bold}.pos{color:#0a8f43;font-weight:bold}.zero{color:#b7791f;font-weight:bold}
+.tag{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold}.t1{background:#e3f7ea;color:#0a8f43}.t2{background:#fde2e2;color:#c0392b}.t3{background:#fff3cd;color:#9a6b00}.t4{background:#e8eefc;color:#2f5bd3}
+.todo td{vertical-align:top}.btn{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff}.btn.rec{border-color:#03c75a;color:#03a04c;font-weight:bold}
+.rule{background:#eef6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px}
+.rtabs{display:flex;gap:6px;margin:10px 0 4px}.rtabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.rtabs span.on{background:#222;color:#fff;border-color:#222}
+.rgroup{background:#fff;border-radius:10px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);overflow:hidden}.rhead{padding:10px 14px;font-weight:bold;background:#fbfbfc;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.rhead .sub{font-weight:normal}
+.lbl{padding:8px 14px 4px;font-size:12px;color:#666;font-weight:bold}.lk{cursor:pointer}
+
+h2{margin:0 0 4px;font-size:20px}h3{font-size:15px;margin:20px 0 8px}.sub{color:#888;font-size:12px;font-weight:normal}.crumb{color:#999;font-size:12px;margin-bottom:4px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}.card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.card.red{border-left:4px solid #e5484d}.k{color:#777;font-size:12px}.v{font-size:17px;font-weight:bold;margin:3px 0}.s{font-size:12px;color:#555}.lk{color:#03a04c;font-size:12.5px;margin-top:4px;display:inline-block}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:12.5px}td,th{border-bottom:1px solid #eee;padding:7px 9px;text-align:left}th{background:#f1f3f5;border-bottom:1px solid #ddd}
+.neg{color:#c0392b;font-weight:bold}.pos{color:#0a8f43;font-weight:bold}.zero{color:#b7791f;font-weight:bold}
+.tag{display:inline-block;white-space:nowrap;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:bold}.t1{background:#e3f7ea;color:#0a8f43}.t2{background:#fde2e2;color:#c0392b}.t3{background:#fff3cd;color:#9a6b00}.t4{background:#e8eefc;color:#2f5bd3}
+.todo td{vertical-align:top}.btn{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff}.btn.rec{border-color:#03c75a;color:#03a04c;font-weight:bold}
+.rule{background:#eef6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px}
+.rtabs{display:flex;gap:6px;margin:10px 0 4px}.rtabs span{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:12.5px}.rtabs span.on{background:#222;color:#fff;border-color:#222}
+.rgroup{background:#fff;border-radius:10px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06);overflow:hidden}.rhead{padding:10px 14px;font-weight:bold;background:#fbfbfc;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.rhead .sub{font-weight:normal}
+.lbl{padding:8px 14px 4px;font-size:12px;color:#666;font-weight:bold}.stabs{display:flex;gap:6px;margin:12px 0 8px}.stabs span{padding:6px 14px;border-radius:16px;background:#fff;border:1px solid #ddd;font-size:13px}.stabs span.on{background:#222;color:#fff;border-color:#222}.stabs b{margin-left:4px}
+.steps{display:flex;gap:4px}.steps i{font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;background:#eee;color:#999}.steps i.done{background:#e3f7ea;color:#0a8f43}.steps i.now{background:#222;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.box{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.box h4{margin:0 0 8px;font-size:14px}
+.warn{background:#fff1f0;border-left:4px solid #e5484d;border-radius:8px;padding:10px 14px;font-size:13px;margin:12px 0}.kv td{border:none;padding:4px 6px}.kv td:first-child{color:#777;width:130px}
+.tl{list-style:none;padding:0;margin:0;font-size:13px}.tl li{padding:6px 0 6px 18px;border-left:2px solid #cfe8d6;margin-left:6px;position:relative}.tl li:before{content:'';position:absolute;left:-6px;top:10px;width:10px;height:10px;border-radius:50%;background:#03c75a}.tl b{display:inline-block;width:46px;color:#555}
+.hdr{display:flex;align-items:center;gap:10px}.mini{font-size:12.5px;color:#555}.flow5{display:flex;gap:0;margin:12px 0}.flow5 div{flex:1;padding:9px 10px;background:#eceef1;color:#888;font-size:12.5px;text-align:center;border-right:2px solid #f7f8fa}.flow5 div.done{background:#e3f7ea;color:#0a8f43}.flow5 div.now{background:#222;color:#fff;font-weight:bold}.flow5 div:first-child{border-radius:8px 0 0 8px}.flow5 div:last-child{border-radius:0 8px 8px 0}
+.stage{background:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}.stage.future{opacity:.6}.stage h4{margin:0 0 8px;font-size:14.5px;display:flex;gap:8px;align-items:center}
+.chk{list-style:none;padding:0;margin:6px 0;font-size:13px;line-height:1.9}.chk li:before{content:'☐ ';color:#999}.chk li.ok:before{content:'☑ ';color:#0a8f43}.who{display:inline-block;font-size:11px;padding:0 6px;border-radius:6px;margin-right:6px}.ai{background:#e3f7ea;color:#0a8f43}.me{background:#e8eefc;color:#2f5bd3}.st{background:#f1e8fc;color:#7a3fc4}
+.inp{display:inline-block;border:1px solid #ccc;border-radius:6px;padding:3px 10px;min-width:110px;background:#fffdf3}.calc{background:#f7faf8;border:1px dashed #9fd3b0;border-radius:8px;padding:8px 12px;font-size:13px;margin-top:8px}
+.steps6{display:flex;gap:3px;white-space:nowrap}.steps6 i{white-space:nowrap;font-style:normal;font-size:11px;padding:1px 6px;border-radius:8px;background:#eee;color:#999}.steps6 i.done{background:#e3f7ea;color:#0a8f43}.steps6 i.now{background:#222;color:#fff}.t0{background:#eef0f3;color:#666}
+.grp.sys{cursor:pointer;user-select:none}.grp.sys:hover{background:#2a303d}.grp.sys .ar{display:inline-block;width:12px;color:#8b93a5;font-size:11px}.grp.sys.closed .ar{transform:rotate(-90deg)}.sysbox.closed{display:none}
+#main th{white-space:nowrap}
+.hidden{display:none!important}
+body.auth{display:block}
+#login,#setpw{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#f7f8fa}
+.lbox{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.06)}.lbox h1{font-size:19px;margin:0 0 4px}.lbox p{color:#888;font-size:12.5px;margin:0 0 16px}
+.lbox label{display:block;font-size:12.5px;color:#555;margin:12px 0 5px}
+input,select,textarea{font-family:inherit;font-size:13.5px;padding:7px 9px;border:1px solid #ccc;border-radius:6px;background:#fff;width:100%;box-sizing:border-box}
+.pbtn{background:#03c75a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13.5px;cursor:pointer;font-family:inherit}.pbtn.full{width:100%;margin-top:16px}.pbtn.gray{background:#fff;color:#222;border:1px solid #ccc}
+.msg{font-size:12.5px;margin-top:10px;color:#c0392b;min-height:16px}.lnk{background:none;border:none;color:#2f5bd3;font-size:12.5px;padding:0;margin-top:10px;cursor:pointer;font-family:inherit}
+.me-box{border-top:1px solid #3a4152;margin-top:14px;padding:12px 18px;font-size:12px;color:#8b93a5;line-height:1.8}.me-box button{background:none;border:none;color:#8b93a5;font-size:12px;padding:0;margin-right:10px;cursor:pointer;font-family:inherit}
+.stabs span,.rtabs span{cursor:pointer}
+.empty{background:#fff;border-radius:10px;padding:26px;text-align:center;color:#999;font-size:13px}
+.conn{color:#999;font-weight:normal;font-size:14px}
+tr.click{cursor:pointer}tr.click:hover td{background:#fafbfc}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.mbox{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}.mbox h3{margin:0 0 12px}
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:10px}.frm .w2{grid-column:1/3}.frm label{font-size:12px;color:#555;display:block;margin-bottom:4px}
+.mact{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:60}
+.quick{display:grid;grid-template-columns:110px 1fr 150px 130px auto;gap:8px;align-items:center}
+.cols3{display:grid;grid-template-columns:1fr 1.15fr 1.3fr;gap:12px;margin-top:12px}
+.li{border-top:1px solid #f1f2f4;padding:8px 0;font-size:13px;line-height:1.55;display:flex;gap:8px}.li .bd{flex:1;min-width:0}.li .mt{font-size:12px;color:#2f5bd3;margin-top:2px}.li .wh{font-size:11.5px;color:#999}
+.li input[type=checkbox]{width:auto;margin-top:3px}
+.rep ul{margin:0;padding-left:18px}.rep li{margin:4px 0;line-height:1.55;font-size:13px}.rep .none{color:#999;font-size:13px}
+#top{display:none}
+@media (max-width:800px){
+ body{display:block;height:auto}
+ .side{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);transition:transform .2s}.side.open{transform:none}
+ #top{display:flex;align-items:center;gap:10px;background:#1f2430;color:#fff;padding:10px 14px;position:sticky;top:0;z-index:30}#top button{background:none;border:none;color:#fff;font-size:20px}
+ .main{padding:14px}.cards{grid-template-columns:1fr 1fr}.quick{grid-template-columns:1fr 1fr}.quick .w2{grid-column:1/3}.cols3,.grid2{grid-template-columns:1fr}.hide-m{display:none}
+ table{display:block;overflow-x:auto}
+}
+
+/* 키워드별 R 후보 줄바꿈 */
+#mb table,#rbody table{word-break:keep-all}
+#mb th{white-space:nowrap}
+#mb td.nw,#mb .btn,#mb select,#mb .tag{white-space:nowrap}
+#mb .sc{display:block;font-size:11px;color:#8a93a6;white-space:nowrap;line-height:1.5}
+#mb .ptab td{vertical-align:top;line-height:1.55}
+#mb .ptab td.nw{vertical-align:top}
+#mb a.out:hover b,#mb a.out:hover{text-decoration:underline}
+
+/* 스레드 */
+.flow{display:flex;align-items:stretch;margin:12px 0;flex-wrap:wrap;gap:4px 0}
+.flow .st{color:#444;background:#fff;border:1px solid #e3e6ea;padding:8px 12px;min-width:96px;text-align:center;font-size:12px;position:relative;margin-right:16px;border-radius:8px}
+.flow .st b{display:block;font-size:18px;margin-top:2px;color:#222}.flow .st:after{content:'→';position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:#aaa}
+.flow .st:last-child:after{content:''}.flow .st.hot{border-color:#03c75a;background:#f3fbf6}.flow .st .mini{display:block}
+.who{display:inline-block;font-size:11px;border-radius:8px;padding:0 7px;white-space:nowrap}.who.ai{background:#e3f7ea;color:#0a8f43}.who.me{background:#e8eefc;color:#2f5bd3}
+.chk{display:inline-block;width:16px;height:16px;border:1.5px solid #bbb;border-radius:4px;vertical-align:middle;text-align:center;line-height:13px;font-size:12px}.chk.done{background:#03c75a;border-color:#03c75a;color:#fff}
+.mini{font-size:11px;color:#8a93a6}
+</style></head><body class="auth">
+<div id="login" class="hidden"><div class="lbox"><h1>회사 업무 사이트</h1><p>회사 메일 주소로 로그인하세요</p><label>메일 주소</label><input id="lemail" type="email" autocomplete="username"><label>비밀번호</label><input id="lpw" type="password" autocomplete="current-password"><button class="pbtn full" id="lbtn">로그인</button><div class="msg" id="lmsg"></div><button class="lnk" id="lreset">비밀번호를 잊었어요 (재설정 메일 받기)</button></div></div>
+<div id="setpw" class="hidden"><div class="lbox"><h1>비밀번호 정하기</h1><p>앞으로 이 비밀번호로 로그인해요 (8자 이상)</p><label>새 비밀번호</label><input id="np1" type="password" autocomplete="new-password"><label>한 번 더</label><input id="np2" type="password" autocomplete="new-password"><button class="pbtn full" id="npbtn">저장하고 들어가기</button><div class="msg" id="npmsg"></div></div></div>
+<div id="app" class="hidden" style="display:contents">
+<div id="top"><button id="mbtn">☰</button><b>회사 업무 사이트</b></div>
+<div class="side" id="side"></div>
+<div class="main" id="m"></div>
+</div>
+<div id="modal" class="hidden"><div class="mbox" id="mbox"></div></div>
+<script>
+const AUTH_TYPE=(location.hash.match(/type=(invite|recovery|signup|magiclink)/)||[])[1]||null;
+const SB_URL='https://rccqttalxsniltuxwbyt.supabase.co';
+const SB_KEY='sb_publishable_SylrJrFPnG4TIVxqUVB-jQ_jCIJYmcD';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const PEOPLE=['대표님','철님','다원님'];
+let ME=null, VIEW='home', NEED_PW=false;
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
+function today(){return new Date(Date.now()+9*3600e3).toISOString().slice(0,10);}
+function nowHM(){return new Date(Date.now()+9*3600e3).toISOString().slice(11,16);}
+function weekStart(t){const d=new Date(t+'T00:00:00Z');const wd=(d.getUTCDay()+6)%7;return new Date(d.getTime()-wd*864e5).toISOString().slice(0,10);}
+function showOnly(id){['login','setpw','app'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id));document.body.classList.toggle('auth',id!=='app');}
+
+/* ---------- 로그인 ---------- */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ showOnly('login'); return; }
+  if(AUTH_TYPE==='invite'||AUTH_TYPE==='recovery'||NEED_PW){ NEED_PW=true; showOnly('setpw'); history.replaceState(null,'',location.pathname); return; }
+  const {data:name,error}=await sb.rpc('my_name');
+  if(error||!name){ await sb.auth.signOut({scope:'local'}); showOnly('login'); $('#lmsg').textContent=error?'로그인이 풀렸어요. 다시 로그인해 주세요.':'등록되지 않은 계정이에요. 대표님께 문의하세요.'; return; }
+  ME={name,email:session.user.email};
+  try{ const {data:b}=await sb.rpc('is_boss'); ME.boss=!!b; }catch(e){ ME.boss=false; }
+  showOnly('app');
+  VIEW=(location.hash||'#home').slice(1)||'home'; if(VIEW.includes('=')) VIEW='home';
+  renderSide(); go(VIEW); if(ME.boss) noticePoll();
+}
+$('#lbtn').onclick=async()=>{ $('#lmsg').textContent=''; const {error}=await sb.auth.signInWithPassword({email:$('#lemail').value.trim(),password:$('#lpw').value}); if(error){$('#lmsg').textContent='메일 주소나 비밀번호가 맞지 않아요.';return;} boot(); };
+$('#lpw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#lbtn').click();});
+$('#lreset').onclick=async()=>{ const em=$('#lemail').value.trim(); if(!em){$('#lmsg').textContent='메일 주소를 먼저 적어 주세요.';return;}
+  const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
+  $('#lmsg').style.color=error?'#c0392b':'#0a8f43'; $('#lmsg').textContent=error?((error.status===429||/rate/i.test(error.message))?'메일을 너무 자주 보내서 잠시 막혔어요. 1시간쯤 뒤에 다시 해 주세요.':'메일을 보내지 못했어요.'):'재설정 메일을 보냈어요. 메일함을 확인하세요.'; };
+sb.auth.onAuthStateChange((ev)=>{ if(ev==='PASSWORD_RECOVERY') NEED_PW=true; if(ev==='SIGNED_OUT'&&ME){ ME=null; showOnly('login'); $('#lmsg').textContent='로그인이 풀렸어요. 다시 로그인해 주세요.'; } });
+async function expired(err){ if(err&&/permission denied|JWT|jwt|401/.test(err.message||'')){ await sb.auth.signOut({scope:'local'}); ME=null; showOnly('login'); $('#lmsg').textContent='로그인이 풀렸어요. 다시 로그인해 주세요.'; return true; } return false; }
+$('#npbtn').onclick=async()=>{ const a=$('#np1').value,b=$('#np2').value; if(a.length<8){$('#npmsg').textContent='8자 이상으로 정해 주세요.';return;} if(a!==b){$('#npmsg').textContent='두 번 입력한 비밀번호가 달라요.';return;}
+  const {error}=await sb.auth.updateUser({password:a}); if(error){$('#npmsg').textContent='저장하지 못했어요: '+error.message;return;} NEED_PW=false; toast('비밀번호를 정했어요'); boot(); };
+
+/* ---------- 메뉴 (목업과 같은 구조) ---------- */
+const TITLES={home:'전체 현황',notice:'전달사항',r:'R(제품) 목록',mywork:'내 업무','pc-pool':'파워컨텐츠 › 키워드별 R 후보 (AI 추천)','pc-kw':'파워컨텐츠 › 1. 키워드','pc-pub':'파워컨텐츠 › 2. 발행','pc-rank':'파워컨텐츠 › 3. 노출체크','pc-perf':'파워컨텐츠 › 4. 성과','pc-edit':'파워컨텐츠 › 수정 기록','pc-acc':'파워컨텐츠 › 계정·외주','pc-set':'파워컨텐츠 › 설정',th:'스레드 › 오늘 할 일','th-today':'스레드 › 오늘 할 일','th-ref':'스레드 › 1. 레퍼런스','th-post':'스레드 › 2. 원고 배정·발행','th-view':'스레드 › 3. 조회수 체크','th-pay':'스레드 › 4. 주정산','th-fl':'스레드 › 프리랜서','th-set':'스레드 › 설정'};
+function isOpen(s){ try{ const v=localStorage.getItem('sys_'+s); return v===null?true:v==='1'; }catch(e){ return true; } }
+function renderSide(){
+  const it=(p,t,top)=>'<div class="it'+(top?' top':'')+(VIEW===p?' on':'')+'" data-p="'+p+'">'+t+'</div>';
+  const sys=(s,t,inner)=>'<div class="grp sys'+(isOpen(s)?'':' closed')+'" data-s="'+s+'"><span class="ar">▾</span> '+t+'</div><div class="sysbox'+(isOpen(s)?'':' closed')+'">'+inner+'</div>';
+  $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+(ME.boss?it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1):'')
+   +'<div class="g1">채널 시스템</div>'
+   +sys('pc','파워컨텐츠 시스템',it('pc-pool','키워드별 R 후보 (AI 추천)')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-kw','1. 키워드')+it('pc-pub','2. 발행')+it('pc-rank','3. 노출체크')+it('pc-perf','4. 성과')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-edit','수정 기록')+it('pc-acc','계정·외주')+it('pc-set','설정'))
+   +sys('th','스레드 시스템',it('th-today','오늘 할 일')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-ref','1. 레퍼런스')+it('th-post','2. 원고 배정·발행')+it('th-view','3. 조회수 체크')+(ME.boss?it('th-pay','4. 주정산'):'')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-fl','프리랜서')+it('th-set','설정'))
+   +'<div class="grp" style="color:#5d667a">+ 채널 추가 (메타 등)</div>'
+   +'<div class="me-box">'+esc(ME.name)+' · '+esc(ME.email)+'<br><button id="chpw">비밀번호 바꾸기</button><button id="logout">로그아웃</button></div>';
+  document.querySelectorAll('#side .it[data-p]').forEach(e=>e.onclick=()=>{go(e.dataset.p);$('#side').classList.remove('open');});
+  document.querySelectorAll('#side .grp.sys').forEach(g=>g.onclick=()=>{ const s=g.dataset.s; try{localStorage.setItem('sys_'+s,isOpen(s)?'0':'1');}catch(e){} renderSide(); });
+  $('#chpw').onclick=()=>{ $('#np1').value='';$('#np2').value='';$('#npmsg').textContent=''; showOnly('setpw'); };
+  $('#logout').onclick=async()=>{ await sb.auth.signOut({scope:'local'}); location.hash=''; location.reload(); };
+}
+$('#mbtn').onclick=()=>$('#side').classList.toggle('open');
+function go(v){ VIEW=v; if(location.hash.slice(1)!==v) location.hash=v; renderSide(); const t=TITLES[v]||''; $('#m').innerHTML='<div class="crumb">회사 업무 사이트 › '+t+'</div><h2>'+t+'</h2><div id="mb">불러오는 중…</div>'; (VIEWS[v]||blank)(); $('#m').scrollTop=0; }
+function blank(){ $('#mb').innerHTML='<div class="sub">아직 만들지 않은 화면이에요</div><div class="ph">화면 설계(목업)는 있고, 실제 데이터가 연결되면 채워요.</div>'; }
+const VIEWS={th:viewThToday,'th-today':viewThToday,'th-ref':viewThRef,'th-post':viewThPost,'th-view':viewThView,'th-pay':viewThPay,'th-fl':viewThFl,'th-set':viewThSet,home:viewHome,notice:viewNotice,r:viewR,mywork:viewMy,'pc-pool':viewPool};
+window.addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(ME&&v&&v!==VIEW&&TITLES[v])go(v);});
+
+/* ---------- 데이터 ---------- */
+let WL=[], RS=[];
+async function loadWL(){ const {data,error}=await sb.from('work_log').select('id,log_date,log_time,who,type,area,product,content,reason,status,owner,unblock,importance,source,closed_date,people,uploader').order('log_date',{ascending:false}).order('log_time',{ascending:false}).limit(3000); if(error) throw error; WL=data||[]; }
+async function loadR(){ const {data,error}=await sb.from('r_products').select('*').order('updated_at',{ascending:false}); if(error) throw error; RS=data||[]; }
+function mine(r,who){ return who==='전체' || r.owner===who || (!r.owner && (r.who===who||r.uploader===who)); }
+const isOpenTodo=r=>r.people&&r.type==='할 일'&&r.status==='진행 중';
+const isBlocked=r=>r.people&&r.type==='막힌 점'&&['막힘','보류','확인 필요'].includes(r.status);
+
+/* ---------- 전체 현황 (목업 구성 그대로, 없는 데이터는 "연결 전") ---------- */
+async function viewHome(){
+  try{ await Promise.all([loadWL(),loadR()]); }catch(e){ if(await expired(e)) return; $('#mb').textContent='불러오지 못했어요: '+e.message; return; }
+  const sale=RS.filter(r=>r.status==='판매 중');
+  const card=(k,v,s,lk,go2,red)=>'<div class="card'+(red?' red':'')+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div>'+(lk?'<span class="lk" data-go="'+go2+'">'+lk+' →</span>':'')+'</div>';
+  const conn='<span class="conn">—</span>';
+  let h='<div class="sub">실제 데이터 기준 · '+today().slice(5)+' '+nowHM()+' · 광고·노출·매출은 연결 전이라 "—"로 표시</div>';
+  h+='<div class="cards">'+card('오늘 자동 처리',conn,'자동 처리 기록 연결 전','','')+card('기준 미달 키워드',conn,'키워드·광고 연결 전','키워드 (개선 필요 순)','pc-kw')+card('목표 순위 이탈',conn,'노출체크 연결 전','노출체크','pc-rank')+card('최근 7일 매출 / 비용',conn,'카페24·광고 연결 전','','')+'</div>';
+  h+='<h3>R(제품)별 현황 <span class="sub">비용 대비 매출: 초록 = 손익분기 위, 빨강 = 손익분기 아래</span></h3>';
+  h+=sale.length?'<table><tr><th>R</th><th>판매 중인 C</th><th>최근 7일 매출</th><th>비용 대비 매출</th><th>상태</th></tr>'+sale.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.channels||'')+'</td><td class="sub">연결 전</td><td class="sub">연결 전'+(be(r)?' (손익분기 '+be(r)+'%)':'')+'</td><td><span class="tag t0">판단 전</span></td></tr>').join('')+'</table>':'<div class="empty">판매 중인 R이 아직 없어요. <span class="lk" data-go="r">R(제품) 목록 →</span></div>';
+  const todo=WL.filter(r=>isBlocked(r)&&(r.owner==='대표님'||!r.owner)).map(r=>({tag:'<span class="tag t2">막힘</span>',what:r.content,sub:r.unblock?'풀려면: '+r.unblock:'',st:r.status,d:r.log_date}))
+    .concat(WL.filter(r=>isOpenTodo(r)&&r.owner==='대표님').map(r=>({tag:'<span class="tag t4">할 일</span>',what:r.content,sub:'',st:'진행 중',d:r.log_date}))).slice(0,5);
+  const ws=weekStart(today()); const wn=WL.filter(r=>r.log_date>=ws).length;
+  h+='<h3>대표님이 볼 일 <span class="sub">막힌 것·남은 할 일 · 하루 5개까지 (돈 영향은 광고 연결 후)</span></h3><table class="todo"><tr><th style="width:80px">구분</th><th style="width:360px">무슨 일</th><th style="width:150px">돈 영향</th><th>선택지</th><th style="width:70px">생긴 날</th></tr>'
+   +(todo.map(t=>'<tr><td>'+t.tag+'</td><td><b>'+esc(t.what)+'</b>'+(t.sub?'<br><span class="sub">'+esc(t.sub)+'</span>':'')+'</td><td class="sub">—</td><td><span class="btn" data-go="mywork">내 업무에서 처리</span></td><td>'+t.d.slice(5)+'</td></tr>').join('')||'<tr><td colspan="5" class="sub">대표님이 볼 일이 없어요</td></tr>')
+   +'<tr><td><span class="tag t4">주간 요약</span></td><td><b>이번 주 기록 '+wn+'건</b><br><span class="sub">'+ws.slice(5)+'부터 · 할 일·막힌 것·노하우 정리</span></td><td>-</td><td><span class="btn rec" data-go="mywork-week">이번 주 정리 보기</span></td><td>이번 주</td></tr></table>';
+  $('#mb').innerHTML=h;
+  document.querySelectorAll('#mb [data-go]').forEach(e=>e.onclick=()=>{ if(e.dataset.go==='mywork-week'){ MTAB='week'; go('mywork'); } else go(e.dataset.go); });
+}
+function be(r){ const m=r.margin||((r.price&&r.cost)?r.price-r.cost:null); return (r.price&&m)?Math.round(r.price/m*100):null; }
+
+/* ---------- R 목록 (판매 중 / 준비 중 / 드롭 / 키워드별 R 후보) ---------- */
+const STAGES=['시장조사','소싱·판매가','테스트 준비','예약판매 테스트','진행 결정'];
+let RTAB='판매 중';
+async function viewR(){
+  try{ await loadR(); }catch(e){ if(await expired(e)) return; $('#mb').textContent='불러오지 못했어요: '+e.message; return; }
+  const c=s=>RS.filter(r=>r.status===s).length;
+  let h='<div class="sub">모든 채널이 함께 쓰는 제품 목록 · 흐름: 준비 중 → 판매 중 (또는 드롭) · 파워컨텐츠에서 찾은 R 후보는 <a href="#pc-pool" style="color:#03a04c">파워컨텐츠 › 키워드별 R 후보</a>에서 "준비 시작"을 누르면 여기로 와요</div><div class="stabs">'
+   +['판매 중','준비 중','드롭'].map(t=>'<span class="'+(RTAB===t?'on':'')+'" data-t="'+t+'">'+t+'<b>'+c(t)+'</b></span>').join('')
+   +'<span id="radd" style="margin-left:auto;background:#03c75a;color:#fff;border-color:#03c75a">+ R 직접 등록</span>'+'</div><div id="rbody"></div>';
+  $('#mb').innerHTML=h;
+  document.querySelectorAll('#mb .stabs span[data-t]').forEach(e=>e.onclick=()=>{RTAB=e.dataset.t;viewR();});
+  if($('#radd')) $('#radd').onclick=()=>rForm(null);
+  if(!['판매 중','준비 중','드롭'].includes(RTAB)) RTAB='판매 중';
+  const L=RS.filter(r=>r.status===RTAB); let b='';
+  if(RTAB==='판매 중'){
+    b=L.length?'<table><tr><th>R</th><th>처음 판매한 C</th><th>판매 중인 C</th><th>판매가</th><th>개당 마진</th><th>손익분기</th><th>최근 7일 매출</th><th>재고</th><th>런칭일</th><th>상태</th></tr>'+L.map(r=>{const m=r.margin||((r.price&&r.cost)?r.price-r.cost:null);return '<tr class="click" data-id="'+r.id+'"><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.first_channel||'')+'</td><td>'+esc(r.channels||'')+'</td><td>'+(r.price?r.price.toLocaleString()+'원':'')+'</td><td>'+(m?m.toLocaleString()+'원':'')+'</td><td>'+(be(r)?be(r)+'%':'')+'</td><td class="sub">연결 전</td><td>'+esc(r.stock||'')+'</td><td>'+(r.launch_date?r.launch_date.slice(5).replace('-','/'):'')+'</td><td><span class="tag t0">판단 전</span></td></tr>';}).join('')+'</table><p class="sub">줄을 누르면 수정해요. 매출·손익 상태는 카페24·광고를 연결하면 채워져요.</p>':'<div class="empty">판매 중인 R이 없어요. "준비 중"에서 진행 결정이 나면 상태를 "판매 중"으로 바꾸세요.</div>';
+  } else if(RTAB==='준비 중'){
+    const groups=['파워컨텐츠','스레드','기타']; let any=false;
+    groups.forEach(g=>{ const G=L.filter(r=>(r.found_channel||'기타')===g); if(!G.length) return; any=true;
+      b+='<div class="rgroup"><div class="rhead"><span>'+g+'에서 찾은 R</span><span class="sub">'+G.length+'개 · 단계: '+STAGES.join(' → ')+'</span></div><table><tr><th>R</th><th>해결하려는 문제</th><th>진행 단계</th><th>지금 할 일</th><th>담당</th><th>판단</th></tr>'
+       +G.map(r=>{const si=STAGES.indexOf(r.stage||'시장조사');return '<tr class="click" data-id="'+r.id+'"><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.problem||'')+'</td><td><span class="steps6">'+STAGES.map((s,i)=>'<i class="'+(i<si?'done':i===si?'now':'')+'">'+s+'</i>').join('')+'</span></td><td>'+esc(r.next_action||'')+'</td><td><span class="who me">'+esc(r.owner||'')+'</span></td><td><span class="tag '+({'진행':'t1','관찰 중':'t3','보류':'t2'}[r.judgment]||'t0')+'">'+esc(r.judgment||'판단 전')+'</span></td></tr>';}).join('')+'</table></div>'; });
+    if(!any) b='<div class="empty">준비 중인 R이 없어요. 파워컨텐츠 › 키워드별 R 후보에서 "준비 시작"을 누르거나, "+ R 직접 등록"으로 넣으세요.</div>';
+  } else {
+    b=L.length?'<table><tr><th>R</th><th>해결하려는 문제</th><th>드롭 이유 (메모)</th><th>담당</th></tr>'+L.map(r=>'<tr class="click" data-id="'+r.id+'"><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.problem||'')+'</td><td>'+esc(r.memo||'')+'</td><td>'+esc(r.owner||'')+'</td></tr>').join('')+'</table>':'<div class="empty">드롭한 R이 없어요.</div>';
+  }
+  $('#rbody').innerHTML=b;
+  document.querySelectorAll('#rbody tr.click').forEach(e=>e.onclick=()=>rForm(RS.find(r=>r.id==e.dataset.id)));
+}
+
+/* ---------- 키워드별 R 후보 (파워컨텐츠 › 철님 R소싱 자동화 결과) ---------- */
+let POOL={run:null,main:null,sub:'items',page:0,more:false};
+const PST=['대기','검토','보류','탈락'];
+const NBTN='display:inline-block;margin-left:4px;padding:0 5px;border:1px solid #03c75a;border-radius:4px;color:#03c75a;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap';
+const nvA=(kw,label,style)=>'<a class="nv" href="https://search.naver.com/search.naver?query='+encodeURIComponent(kw)+'" target="_blank" rel="noopener" title="네이버에서 검색" style="'+style+'">'+label+'</a>';
+const KWTYPE=t=>{t=String(t||''); if(/^메인/.test(t)) return '메인'; if(/같은 결핍/.test(t)) return '같은 고민'; if(/같은 원리/.test(t)) return '같은 해결 방법'; return t;};
+const SELL=v=>{v=String(v||''); if(/^O/.test(v)) return ['위탁 가능','t1','재고 없이 바로 팔 수 있어요 (위탁)']; if(/^X/.test(v)) return ['제조 필요','t2','공장에서 만들어야 해요 (제조)']; if(/^서비스/.test(v)) return ['업체 제휴','t3',v]; if(/^조합/.test(v)) return ['묶음 확인','t3',v]; if(/미확인/.test(v)) return ['소싱처 미확인','t0','아직 소싱처를 못 찾았어요']; return [v||'-','t0',v];};
+const srcPick=L=>L.find(x=>x.link&&x.source_type==='위탁')||L.find(x=>x.link)||null;
+const siteName=x=>{ let n=String(x.site_vendor||'').split(/\s+-\s+|,|·|\//)[0].replace(/\s*\([^)]*\)\s*$/,'').replace(/^\(주\)\s*|^주식회사\s*|\s*주식회사$/,'').trim(); if(!n) n=String(x.source_type||'링크'); return n.length>10?n.slice(0,10)+'…':n; };
+const outA=(url,label,style,title)=>'<a class="out" href="'+esc(url)+'" target="_blank" rel="noopener"'+(title?' title="'+esc(title)+'"':'')+' style="'+(style||'')+'">'+label+'</a>';
+
+async function viewPool(){
+  const box=$('#mb'); box.innerHTML='불러오는 중…';
+  const {data:runs,error}=await sb.from('rs_summary').select('run_id,employee').order('run_id',{ascending:false}).limit(500);
+  if(error){ if(await expired(error)) return; box.textContent='불러오지 못했어요: '+error.message; return; }
+  const runIds=[...new Set((runs||[]).map(r=>r.run_id))]; if(!runIds.length){ box.innerHTML='<div class="empty">아직 올라온 결과가 없어요. 철님 R소싱 자동화가 올리면 여기에 나와요.</div>'; return; }
+  if(!POOL.run||!runIds.includes(POOL.run)) POOL.run=runIds[0];
+  if(POOL.main) return poolDetail();
+  const {data:sum}=await sb.from('rs_summary').select('*').eq('run_id',POOL.run).order('main_score',{ascending:false,nullsFirst:false});
+  const {data:its}=await sb.from('rs_items').select('main_keyword,status,rank').eq('run_id',POOL.run).lte('rank',100);
+  const {data:gks}=await sb.from('rs_keywords').select('main_keyword,keyword,search_volume,gap').eq('run_id',POOL.run).eq('gap','O').order('search_volume',{ascending:false,nullsFirst:false});
+  const GK={}; (gks||[]).forEach(k=>{(GK[k.main_keyword]=GK[k.main_keyword]||[]).push(k);});
+  const PER=10, pages=Math.max(1,Math.ceil((sum||[]).length/PER)); if(POOL.page>=pages) POOL.page=0;
+  const st={}; (its||[]).forEach(r=>{ st[r.main_keyword]=st[r.main_keyword]||{}; st[r.main_keyword][r.status]=(st[r.main_keyword][r.status]||0)+1; });
+  const emp=(runs.find(r=>r.run_id===POOL.run)||{}).employee||'';
+  let h='<div class="rule"><b>그 키워드로 검색하는 사람에게 팔 수 있는 R(제품) 후보</b>예요. 철님의 R소싱 자동화가 매일 찾아요. <b>메인 키워드를 누르면 R 후보 화면</b>으로 넘어가고, 해 볼 만한 R은 <b>"준비 시작"</b>을 누르면 R 목록의 <b>준비 중</b>으로 넘어가요.</div>'
+   +'<div style="display:flex;gap:8px;align-items:center;margin:12px 0 4px;flex-wrap:wrap"><span class="sub">실행</span><select id="p_run" style="width:auto">'+runIds.map(r=>'<option '+(r===POOL.run?'selected':'')+'>'+esc(r)+'</option>').join('')+'</select><span class="sub">· '+esc(emp)+' · 메인 키워드 '+(sum||[]).length+'개 · R 후보 '+(its||[]).length+'개</span></div>'
+   +'<h3>메인 키워드 <span class="sub">점수 = 찾는 사람·살 마음·빈틈·넓힐 여지 · <b style="color:#03c75a">N↗</b>과 빈틈 키워드를 누르면 네이버 검색 · 빈틈 키워드에 마우스를 올리면 전체가 보여요</span></h3>'
+   +'<table><tr><th>메인 키워드</th><th>점수</th><th title="빈틈 키워드들의 월 검색량을 더한 값">빈틈 검색량</th><th style="min-width:260px">빈틈 키워드 (검색량 순)</th><th>R 후보</th><th>점수 1위 R 후보</th><th>내 검토</th></tr>'
+   +(sum||[]).slice(POOL.page*PER,POOL.page*PER+PER).map(s=>{const gk=GK[s.main_keyword]||[];const t=st[s.main_keyword]||{};const n=Object.values(t).reduce((a,b)=>a+b,0);
+     return '<tr class="click" data-main="'+esc(s.main_keyword)+'"><td class="nw"><b style="color:#03a04c;text-decoration:underline">'+esc(s.main_keyword)+'</b> '+nvA(s.main_keyword,'N↗',NBTN)+'</td>'
+      +'<td class="nw"><b>'+(s.main_score??'')+'</b><span class="sc">'+esc(s.score_detail||'')+'</span></td>'
+      +'<td class="nw">'+(s.gap_search_sum!=null?s.gap_search_sum.toLocaleString():'')+'</td>'
+      +'<td style="max-width:340px;font-size:12px" title="'+esc(gk.map(k=>k.keyword+' '+(k.search_volume||0).toLocaleString()).join(', '))+'">'+gk.slice(0,5).map(k=>nvA(k.keyword,esc(k.keyword),'color:inherit;text-decoration:none')+' <span class="sub">'+(k.search_volume!=null?k.search_volume.toLocaleString():'')+'</span>').join(', ')+(gk.length>5?' <span class="sub">외 '+(gk.length-5)+'개</span>':'')+'</td>'
+      +'<td class="nw">'+n+'</td><td style="max-width:380px">'+esc(String(s.top_market_r||'').split(' · ')[0])+'</td>'
+      +'<td>'+Object.entries(t).map(([k,v])=>'<span class="tag '+({'검토':'t3','보류':'t2','탈락':'t2','준비 시작':'t1'}[k]||'t0')+'">'+esc(k)+' '+v+'</span>').join(' ')+'</td></tr>';}).join('')+'</table>'
+   +(pages>1?'<div style="display:flex;gap:6px;justify-content:center;margin:10px 0">'+Array.from({length:pages},(_,i)=>'<span class="btn'+(i===POOL.page?' rec':'')+'" data-pg="'+i+'" style="cursor:pointer">'+(i*PER+1)+'~'+Math.min((i+1)*PER,(sum||[]).length)+'위</span>').join('')+'</div>':'');
+  box.innerHTML=h;
+  $('#p_run').onchange=e=>{POOL.run=e.target.value;POOL.main=null;POOL.page=0;viewPool();};
+  box.querySelectorAll('tr[data-main]').forEach(e=>e.onclick=ev=>{ if(ev.target.closest('a')) return; POOL.main=e.dataset.main;POOL.sub='items';POOL.more=false;poolDetail();});
+  box.querySelectorAll('[data-pg]').forEach(e=>e.onclick=()=>{POOL.page=+e.dataset.pg;viewPool();});
+}
+
+async function poolDetail(){
+  const box=$('#mb'); box.innerHTML='불러오는 중…'; $('#m').scrollTop=0;
+  const q=(t)=>sb.from(t).select('*').eq('run_id',POOL.run).eq('main_keyword',POOL.main);
+  const [z,a,b,c,d]=await Promise.all([q('rs_summary'),q('rs_items').order('rank'),q('rs_keywords').order('search_volume',{ascending:false,nullsFirst:false}),q('rs_sources'),q('rs_excluded')]);
+  if(z.error){ if(await expired(z.error)) return; box.textContent='불러오지 못했어요: '+z.error.message; return; }
+  const s=(z.data||[])[0]||{main_keyword:POOL.main};
+  const all=a.data||[], items=all.filter(r=>r.rank<=100), bundles=all.filter(r=>r.rank>100), kws=b.data||[], srcs=c.data||[], exc=d.data||[];
+  const SR={}; srcs.forEach(x=>{(SR[x.r_name]=SR[x.r_name]||[]).push(x);});
+  const tabs=[['items','R 후보',items.length],['kw','키워드',kws.length],['src','소싱처',srcs.length],['exc','뺀 키워드',exc.length]];
+  let h='<div style="margin:2px 0 10px"><span class="btn" id="pback" style="cursor:pointer">← 메인 키워드 목록</span></div>'
+   +'<div class="rgroup"><div class="rhead" style="align-items:flex-start"><span><b style="font-size:18px">'+esc(s.main_keyword)+'</b> '+nvA(s.main_keyword,'N↗',NBTN)+' <span class="sub" style="margin-left:8px">점수 <b>'+(s.main_score??'-')+'</b> · 빈틈 검색량 '+(s.gap_search_sum!=null?s.gap_search_sum.toLocaleString():'-')+'</span></span><span class="sub">실행 '+esc(POOL.run)+'</span></div>'
+   +'<div style="padding:10px 14px 0;line-height:1.7"><div><span class="sub">검색하는 사람이 원하는 것</span> &nbsp;'+esc(s.desired_state||'-')+'</div>'+(s.objection_verdict?'<div><span class="sub">AI 자체 검토</span> &nbsp;'+esc(s.objection_verdict)+'</div>':'')+'</div>'
+   +'<div class="rtabs" style="padding:10px 14px 0">'+tabs.map(([k,t,n])=>'<span class="'+(POOL.sub===k?'on':'')+'" data-sub="'+k+'">'+t+' '+n+'</span>').join('')+'</div>';
+  if(POOL.sub==='items'){
+    const shown=POOL.more?items:items.slice(0,10);
+    h+='<table class="ptab"><tr><th>순위</th><th style="min-width:250px">R 후보 <span class="sub">(누르면 소싱처)</span> · 누가 사나</th><th style="min-width:170px">해결하는 불편</th><th title="찾는 사람 = 수요 · 흔치 않음 = 희소성 · 문구 매력 = 광고 문구로 끌기 쉬운 정도 · 큰 숫자 = 세 점수 평균">점수</th><th title="이 R과 이어지는 빈틈 키워드의 월 검색량">빈틈 검색량</th><th>판매 방식 · 소싱처</th><th>상태</th><th>내 메모</th><th></th></tr>'
+     +shown.map(r=>{ const L=SR[r.r_name]||[], p=srcPick(L), sl=SELL(r.direct_consign);
+       const nm=p?outA(p.link,esc(r.r_name)+' <span style="color:#8a93a6;font-weight:400">↗</span>','color:inherit;text-decoration:none','소싱처 열기: '+siteName(p)):esc(r.r_name);
+       const sites=[]; const seen=new Set(); [...L].sort((x,y)=>(x.source_type==='위탁'?0:1)-(y.source_type==='위탁'?0:1)).forEach(x=>{ if(!x.link) return; const n=siteName(x); if(seen.has(n)) return; seen.add(n); sites.push(outA(x.link,esc(n),'color:#03a04c;text-decoration:none',x.product_name||'')); });
+       return '<tr><td class="nw">'+r.rank+'</td>'
+        +'<td><b>'+nm+'</b><div class="sub" style="margin-top:3px">누가: '+esc(r.target_situation||'-')+'</div></td>'
+        +'<td>'+esc(r.pain_point||'')+'</td>'
+        +'<td class="nw"><b style="font-size:15px">'+esc(r.marketability||'-')+'</b><span class="sc">찾는 사람 '+esc(r.demand||'-')+'</span><span class="sc">흔치 않음 '+esc(r.rarity||'-')+'</span><span class="sc">문구 매력 '+esc(r.copy_score||'-')+'</span></td>'
+        +'<td class="nw">'+(r.evidence_gap_volume!=null?r.evidence_gap_volume.toLocaleString():'-')+'</td>'
+        +'<td style="min-width:130px"><span class="tag '+sl[1]+'" title="'+esc(sl[2])+'">'+esc(sl[0])+'</span><div style="font-size:12px;margin-top:4px;line-height:1.6">'+(sites.slice(0,3).join(' · ')||'<span class="sub">링크 없음</span>')+(sites.length>3?' <span class="sub">외 '+(sites.length-3)+'</span>':'')+'</div></td>'
+        +'<td>'+(r.promoted_r_id?'<span class="tag t1">준비 시작</span>':'<select data-st="'+r.id+'" style="width:auto">'+PST.map(x=>'<option '+(r.status===x?'selected':'')+'>'+x+'</option>').join('')+'</select>')+'</td>'
+        +'<td><input data-memo="'+r.id+'" value="'+esc(r.owner_memo||'')+'" placeholder="메모" style="width:110px"></td>'
+        +'<td class="nw">'+(r.promoted_r_id?'<span class="sub">준비 중으로 감</span>':'<span class="btn rec" data-promote="'+r.id+'" title="R 목록 준비 중으로 넘기기">준비 시작</span>')+'</td></tr>'; }).join('')+'</table>';
+    if(items.length>10||bundles.length){
+      if(!POOL.more) h+='<div style="text-align:center;margin:12px 0"><span class="btn" id="pmore" style="cursor:pointer">더보기 ▾ '+(items.length>10?'(11~'+items.length+'위'+(bundles.length?' + 그 밖의 아이디어 '+bundles.length+'묶음':'')+')':'(그 밖의 아이디어 '+bundles.length+'묶음)')+'</span></div>';
+      else {
+        if(bundles.length) h+='<div class="lbl" style="padding:14px 14px 6px">그 밖의 아이디어 <span class="sub">점수·소싱처 없이 제품군별로 묶어 둔 것 · 눈에 띄는 게 있으면 메모만 남겨 두세요</span></div><table class="ptab"><tr><th>제품군</th><th>아이디어</th><th>내 메모</th></tr>'
+          +bundles.map(r=>'<tr><td class="nw">'+esc(String(r.keyword_note||'').replace(/^나머지 R\s*\(제품군:\s*/,'').replace(/\)$/,''))+'</td><td>'+String(r.r_name||'').split(/,\s*/).map(x=>esc(x)).join('<span class="sub"> · </span>')+'</td><td><input data-memo="'+r.id+'" value="'+esc(r.owner_memo||'')+'" placeholder="메모" style="width:110px"></td></tr>').join('')+'</table>';
+        h+='<div style="text-align:center;margin:12px 0"><span class="btn" id="pless" style="cursor:pointer">접기 ▴ (10위까지만)</span></div>';
+      }
+    }
+  } else if(POOL.sub==='kw'){
+    h+='<table class="ptab"><tr><th>키워드 <span class="sub">(누르면 네이버)</span></th><th>관계</th><th>왜 같이 보나</th><th>월 검색량</th><th>월 클릭</th><th>클릭률</th><th>경쟁</th><th title="파워컨텐츠 광고 자리 3칸 중 찬 자리">광고 찬 자리</th><th>빈틈</th></tr>'
+     +kws.map(k=>'<tr><td class="nw"><b>'+nvA(k.keyword,esc(k.keyword),'color:inherit;text-decoration:none')+'</b></td><td class="nw">'+esc(KWTYPE(k.kw_type))+'</td><td>'+esc(k.link_reason||'')+'</td><td class="nw">'+(k.search_volume!=null?k.search_volume.toLocaleString():'')+'</td><td class="nw">'+(k.clicks??'')+'</td><td class="nw">'+(k.ctr!=null?k.ctr+'%':'')+'</td><td class="nw">'+esc(k.competition||'')+'</td><td class="nw">'+esc(k.ad_slots||'')+'</td><td class="nw">'+esc(k.gap||'')+'</td></tr>').join('')+'</table>';
+  } else if(POOL.sub==='src'){
+    h+=Object.entries(SR).map(([rn,L])=>'<div class="lbl" style="padding:14px 14px 6px">'+esc(rn)+'</div><table class="ptab"><tr><th>방식</th><th>사이트·업체</th><th>상품</th><th>공급사</th><th>최소 주문량</th><th>링크</th><th>비고</th></tr>'
+      +L.map(x=>'<tr><td class="nw">'+esc(x.source_type||'')+'</td><td>'+esc(x.site_vendor||'')+'</td><td>'+esc(x.product_name||'')+'</td><td>'+esc(x.supplier||'')+'</td><td>'+esc(x.moq||'')+'</td><td class="nw">'+(x.link?outA(x.link,'열기 ↗','color:#03a04c'):'')+'</td><td>'+esc(x.note||'')+'</td></tr>').join('')+'</table>').join('')||'<div class="empty">소싱처가 없어요</div>';
+  } else {
+    h+='<table class="ptab"><tr><th>뺀 키워드</th><th>뺀 이유</th></tr>'+exc.map(x=>'<tr><td class="nw">'+nvA(x.keyword,esc(x.keyword),'color:inherit;text-decoration:none')+'</td><td>'+esc(x.exclude_reason||'')+'</td></tr>').join('')+'</table>';
+  }
+  h+='</div>'; box.innerHTML=h;
+  $('#pback').onclick=()=>{POOL.main=null;viewPool();};
+  if($('#pmore')) $('#pmore').onclick=()=>{POOL.more=true;poolDetail();};
+  if($('#pless')) $('#pless').onclick=()=>{POOL.more=false;poolDetail();};
+  box.querySelectorAll('[data-sub]').forEach(e=>e.onclick=()=>{POOL.sub=e.dataset.sub;poolDetail();});
+  box.querySelectorAll('[data-st]').forEach(e=>e.onchange=async()=>{ const {error}=await sb.from('rs_items').update({status:e.value}).eq('id',e.dataset.st); if(error){ if(await expired(error)) return; toast('바꾸지 못했어요: '+error.message); } else toast('상태를 바꿨어요'); });
+  box.querySelectorAll('[data-memo]').forEach(e=>e.onchange=async()=>{ const {error}=await sb.from('rs_items').update({owner_memo:e.value}).eq('id',e.dataset.memo); if(error){ if(await expired(error)) return; toast('저장하지 못했어요: '+error.message); } else toast('메모를 저장했어요'); });
+  box.querySelectorAll('[data-promote]').forEach(e=>e.onclick=()=>promote(all.find(x=>x.id==e.dataset.promote), s, srcs));
+}
+async function promote(it,s,srcs){
+  if(!confirm('"'+it.r_name+'"\n\n이 R을 준비 시작할까요? R 목록의 "준비 중"으로 넘어가요.')) return;
+  const kw=[s.main_keyword,it.main_keyword_gap,it.co_ad_keywords].filter(Boolean).join(', ');
+  const src=srcs.filter(x=>x.r_name===it.r_name); const link=(src.find(x=>x.link)||{}).link||'';
+  const memo=['타겟: '+(it.target_situation||''),'납득 이유: '+(it.convincing_reason||''),'차별화: '+(it.differentiation||''),'소싱처 '+src.length+'곳 (키워드별 R 후보 › '+POOL.run+' › '+s.main_keyword+')'].join('\n');
+  const {data,error}=await sb.from('r_products').insert({name:it.r_name,problem:it.pain_point||'',status:'준비 중',stage:'시장조사',judgment:'진행',found_channel:'파워컨텐츠',owner:ME.name,keywords:kw,source_link:link,memo,next_action:'시장조사: 키워드 빈틈·경쟁 가격대 확인',created_by:ME.name,updated_at:new Date().toISOString()}).select('id').single();
+  if(error){ if(await expired(error)) return; toast('넘기지 못했어요: '+error.message); return; }
+  await sb.from('rs_items').update({status:'준비 시작',promoted_r_id:data.id,promoted_at:new Date().toISOString()}).eq('id',it.id);
+  toast('R 목록 "준비 중"으로 넘겼어요'); poolDetail();
+}
+function rForm(r){
+  r=r||{status:'준비 중',stage:'시장조사',owner:ME.name,found_channel:'파워컨텐츠',judgment:'진행'};
+  const ch=(r.channels||'').split(',').map(s=>s.trim()); const opt=(arr,v)=>arr.map(s=>'<option '+(v===s?'selected':'')+'>'+s+'</option>').join('');
+  $('#mbox').innerHTML='<h3>'+(r.id?'R 수정':'R 직접 등록')+'</h3><div class="frm">'
+   +'<div class="w2"><label>제품 이름 *</label><input id="f_name" value="'+esc(r.name||'')+'"></div>'
+   +'<div class="w2"><label>해결하려는 문제</label><input id="f_problem" value="'+esc(r.problem||'')+'" placeholder="예: 양치해도 다시 올라오는 입냄새"></div>'
+   +'<div><label>상태</label><select id="f_status">'+opt(['준비 중','판매 중','드롭'],r.status)+'</select></div>'
+   +'<div><label>찾은 채널</label><select id="f_found">'+opt(['파워컨텐츠','스레드','기타'],r.found_channel)+'</select></div>'
+   +'<div><label>진행 단계 (준비 중)</label><select id="f_stage">'+opt(STAGES,r.stage)+'</select></div>'
+   +'<div><label>판단</label><select id="f_judg">'+opt(['진행','관찰 중','보류'],r.judgment)+'</select></div>'
+   +'<div class="w2"><label>지금 할 일</label><input id="f_next" value="'+esc(r.next_action||'')+'" placeholder="예: 샘플 2개 비교 → 판매가 정하기"></div>'
+   +'<div><label>담당</label><select id="f_owner">'+opt(PEOPLE,r.owner)+'</select></div>'
+   +'<div><label>처음 판매한 C</label><select id="f_first"><option value="">-</option>'+opt(['파워컨텐츠','스레드'],r.first_channel)+'</select></div>'
+   +'<div class="w2"><label>판매 중인 C</label>'+['파워컨텐츠','스레드'].map(c=>'<label style="display:inline-flex;gap:4px;margin-right:14px;align-items:center"><input type="checkbox" class="f_ch" style="width:auto" value="'+c+'" '+(ch.includes(c)?'checked':'')+'>'+c+'</label>').join('')+'</div>'
+   +'<div><label>판매가 (원)</label><input id="f_price" type="number" value="'+(r.price??'')+'"></div>'
+   +'<div><label>개당 마진 (원)</label><input id="f_margin" type="number" value="'+(r.margin??'')+'" placeholder="비우면 판매가−원가"></div>'
+   +'<div><label>원가 (도착원가, 원)</label><input id="f_cost" type="number" value="'+(r.cost??'')+'"></div>'
+   +'<div><label>재고</label><input id="f_stock" value="'+esc(r.stock||'')+'" placeholder="예: 420개"></div>'
+   +'<div><label>런칭일</label><input id="f_launch" type="date" value="'+(r.launch_date||'')+'"></div>'
+   +'<div><label>키워드 (쉼표로)</label><input id="f_kw" value="'+esc(r.keywords||'')+'"></div>'
+   +'<div class="w2"><label>소싱 링크</label><input id="f_link" value="'+esc(r.source_link||'')+'"></div>'
+   +'<div class="w2"><label>메모 (드롭 이유 등)</label><textarea id="f_memo" rows="3">'+esc(r.memo||'')+'</textarea></div>'
+   +'</div><div class="mact"><button class="pbtn gray" id="f_cancel">닫기</button><button class="pbtn" id="f_save">저장</button></div>';
+  $('#modal').classList.remove('hidden');
+  $('#f_cancel').onclick=()=>$('#modal').classList.add('hidden');
+  $('#f_save').onclick=async()=>{
+    const num=id=>{const v=$(id).value;return v===''?null:+v;};
+    const row={name:$('#f_name').value.trim(),problem:$('#f_problem').value.trim(),status:$('#f_status').value,found_channel:$('#f_found').value,stage:$('#f_stage').value,judgment:$('#f_judg').value,next_action:$('#f_next').value.trim(),owner:$('#f_owner').value,first_channel:$('#f_first').value||null,channels:[...document.querySelectorAll('.f_ch:checked')].map(e=>e.value).join(', '),price:num('#f_price'),margin:num('#f_margin'),cost:num('#f_cost'),stock:$('#f_stock').value.trim(),launch_date:$('#f_launch').value||null,keywords:$('#f_kw').value.trim(),source_link:$('#f_link').value.trim(),memo:$('#f_memo').value.trim(),updated_at:new Date().toISOString()};
+    if(!row.name){toast('제품 이름을 적어 주세요');return;}
+    const q=r.id?sb.from('r_products').update(row).eq('id',r.id):sb.from('r_products').insert({...row,created_by:ME.name});
+    const {error}=await q; if(error){ if(await expired(error)) return; toast('저장하지 못했어요: '+error.message);return;}
+    $('#modal').classList.add('hidden'); toast('저장했어요'); RTAB=row.status; viewR();
+  };
+}
+
+/* ---------- 전달사항 (대표님 → 직원) ---------- */
+let NEWN=0, NTAB='open';
+const isNew=n=>!n.boss_seen_at && (n.done_at || (n.kind==='의견' && n.confirmed_at));
+const ntag=n=>n.kind==='할 일'?'<span class="tag t4">할 일</span>':'<span class="tag t3">의견</span>';
+const nst=n=>'<span class="tag '+({'보냄':'t0','확인함':'t3','완료':'t1'}[n.status]||'t0')+'">'+esc(n.status)+'</span>';
+const nOpen=n=>n.kind==='할 일'?n.status!=='완료':n.status==='보냄';
+const nDue=n=>{ if(!n.due_date) return '<span class="sub">-</span>'; const d=n.due_date.slice(5).replace('-','/'); const over=nOpen(n)&&n.due_date<new Date(Date.now()+9*3600e3).toISOString().slice(0,10); return over?'<span class="neg">'+d+' 지남</span>':d; };
+const nDt=t=>{ if(!t) return ''; const d=new Date(new Date(t).getTime()+9*3600e3); const p=x=>String(x).padStart(2,'0'); return (d.getUTCMonth()+1)+'/'+d.getUTCDate()+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes()); };
+const nEnd=n=>n.kind==='할 일'?(n.done_at?nDt(n.done_at):'<span class="sub">-</span>'):(n.confirmed_at?nDt(n.confirmed_at)+'<div class="sub">확인</div>':'<span class="sub">-</span>');
+const nRel=n=>n.related?(n.related_url&&n.related_url.startsWith('#')?'<a href="'+esc(n.related_url)+'" style="color:#03a04c">'+esc(n.related)+'</a>':esc(n.related)):'';
+async function noticeCount(first){
+  if(!ME||!ME.boss) return;
+  const {data,error}=await sb.from('notices').select('id,kind,title,to_name,status,done_at,confirmed_at,boss_seen_at').is('boss_seen_at',null);
+  if(error) return;
+  const L=(data||[]).filter(isNew); const before=NEWN; NEWN=L.length;
+  if(!first && NEWN>before){ const n=L[0]; toast(n.to_name+'님이 "'+n.title+'"을 '+(n.status==='완료'?'완료했어요':'확인했어요')); }
+  if(NEWN!==before) renderSide();
+}
+function noticePoll(){ noticeCount(true); setInterval(()=>noticeCount(false),60000); }
+async function viewNotice(){
+  if(!ME.boss){ $('#mb').innerHTML='<div class="empty">대표님 계정에서만 보여요.</div>'; return; }
+  const {data,error}=await sb.from('notices').select('*').order('created_at',{ascending:false}).limit(300);
+  if(error){ if(await expired(error)) return; $('#mb').textContent='불러오지 못했어요: '+error.message; return; }
+  const all=data||[]; const unseen=new Set(all.filter(isNew).map(n=>n.id));
+  const open=all.filter(nOpen), fin=all.filter(n=>!nOpen(n));
+  const L=NTAB==='open'?open:NTAB==='fin'?fin:all;
+  const over=open.filter(n=>n.kind==='할 일'&&n.due_date&&n.due_date<new Date(Date.now()+9*3600e3).toISOString().slice(0,10)).length;
+  let h='<div class="rule"><b>보내는 법</b>: 어사이드 채팅에 <b>"전달: 철님 요가복 1~3위 후기 좀 봐줘 금요일까지"</b>처럼 대충 적으세요. AI가 할 일/의견으로 나누고 존댓말로 정리해서 보여 드려요. "보내"라고 하면 여기와 직원 "내 업무"에 올라가요.</div>'
+   +'<div class="cards" style="margin-top:12px"><div class="card"><div class="k">아직 안 끝난 것</div><div class="v">'+open.length+'건</div></div><div class="card'+(over?' red':'')+'"><div class="k">기한 지난 할 일</div><div class="v">'+over+'건</div></div><div class="card"><div class="k">새 소식 (완료·확인)</div><div class="v">'+unseen.size+'건</div></div><div class="card"><div class="k">끝난 것</div><div class="v">'+fin.length+'건</div></div></div>'
+   +(unseen.size?'<h3 style="margin-top:16px">새 소식 <span class="sub">직원이 완료·확인한 것 · 이 화면을 나가면 아래 목록으로 들어가요</span></h3><table>'+all.filter(n=>unseen.has(n.id)).map(n=>'<tr style="background:#f3fbf6"><td class="nw">'+ntag(n)+'</td><td><b>'+esc(n.title)+'</b></td><td class="nw">'+esc(n.to_name)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'<span class="sub">한마디 없음</span>')+'</td></tr>').join('')+'</table>':'')
+   +'<div class="rtabs" style="margin-top:14px">'+[['open','아직 안 끝난 것 '+open.length],['fin','끝난 것 '+fin.length],['all','전체 '+all.length]].map(([k,t])=>'<span class="'+(NTAB===k?'on':'')+'" data-nt="'+k+'">'+t+'</span>').join('')+'</div>';
+  h+=L.length?'<table><tr><th>종류</th><th>내용</th><th>받는 사람</th><th>기한</th><th>상태</th><th>직원 한마디</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'+L.map(n=>'<tr'+(unseen.has(n.id)?' style="background:#f3fbf6"':'')+'><td class="nw">'+ntag(n)+'</td><td>'+(unseen.has(n.id)?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-right:6px"></span>':'')+'<b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.done_when?'<div class="sub">끝난 기준: '+esc(n.done_when)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+'</td><td class="nw">'+esc(n.to_name)+'</td><td class="nw">'+nDue(n)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'')+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw"><span class="btn" data-ndel="'+n.id+'" style="cursor:pointer">지우기</span></td></tr>').join('')+'</table>':'<div class="empty">'+(NTAB==='open'?'아직 안 끝난 전달사항이 없어요.':'없어요.')+'</div>';
+  $('#mb').innerHTML=h;
+  document.querySelectorAll('#mb [data-nt]').forEach(e=>e.onclick=()=>{NTAB=e.dataset.nt;viewNotice();});
+  document.querySelectorAll('#mb [data-ndel]').forEach(e=>e.onclick=async()=>{ if(!confirm('이 전달사항을 지울까요? 직원 화면에서도 사라져요.')) return; const {error}=await sb.from('notices').delete().eq('id',e.dataset.ndel); if(error){ toast('지우지 못했어요: '+error.message); return; } toast('지웠어요'); viewNotice(); });
+  if(unseen.size){ await sb.from('notices').update({boss_seen_at:new Date().toISOString()}).in('id',[...unseen]); NEWN=0; renderSide(); }
+}
+/* 내 업무 맨 위: 받은 전달사항 */
+async function myNotices(who){
+  const box=$('#mynotice'); if(!box||who==='전체') return;
+  const {data,error}=await sb.from('notices').select('*').eq('to_name',who).order('created_at',{ascending:false}).limit(100);
+  if(error||!data) return;
+  const since=new Date(Date.now()-3*864e5).toISOString();
+  const L=data.filter(n=>nOpen(n)||(n.done_at||n.confirmed_at||'')>since);
+  if(!L.length){ box.innerHTML=''; return; }
+  const mineView=(who===ME.name);
+  let h='<div class="box" style="margin-top:8px;border-left:4px solid #03c75a"><h4 style="margin:0 0 6px">대표님 전달사항 <span class="sub">'+(mineView?'읽으면 [확인] → 할 일은 끝나면 [완료] · 끝난 것은 3일 뒤 여기서 빠지고 기록은 남아요':(who.endsWith('님')?who:who+'님')+'에게 보낸 것 · 끝난 것은 3일 뒤 빠져요')+'</span></h4><table><tr><th>종류</th><th>내용</th><th>기한</th><th>끝난 기준</th><th>상태</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'
+   +L.map(n=>'<tr><td class="nw">'+ntag(n)+'</td><td><b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+(n.staff_note?'<div class="sub">내 한마디: "'+esc(n.staff_note)+'"</div>':'')+'</td><td class="nw">'+nDue(n)+'</td><td>'+(n.done_when?esc(n.done_when):'<span class="sub">-</span>')+'</td><td class="nw">'+nst(n)+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw" data-ncell="'+n.id+'">'
+     +(mineView?((n.status==='보냄'?'<span class="pbtn gray" data-nack="'+n.id+'" data-act="확인" style="margin-right:10px">확인</span>':'')+(n.kind==='할 일'&&n.status!=='완료'?'<span class="pbtn" data-nack="'+n.id+'" data-act="완료">완료</span>':'')):'')+'</td></tr>').join('')+'</table></div>';
+  box.innerHTML=h;
+  box.querySelectorAll('[data-nack]').forEach(e=>e.onclick=()=>{ const id=e.dataset.nack, act=e.dataset.act; const cell=box.querySelector('[data-ncell="'+id+'"]');
+    cell.innerHTML='<input placeholder="한 줄 남기기 (안 써도 돼요)" style="width:180px" id="nn'+id+'"> <span class="pbtn" id="ns'+id+'">'+act+' 보내기</span> <span class="sub" id="nc'+id+'" style="cursor:pointer">취소</span>';
+    $('#nc'+id).onclick=()=>myNotices(who);
+    $('#ns'+id).onclick=async()=>{ const {error}=await sb.rpc('notice_ack',{p_id:+id,p_action:act,p_note:$('#nn'+id).value.trim()}); if(error){ toast('보내지 못했어요: '+error.message); return; } toast(act==='완료'?'완료했어요. 대표님께 알려져요':'확인했어요'); myNotices(who); }; });
+}
+
+/* ---------- 스레드 시스템 (노션 사본을 읽어서 보여 줌) ---------- */
+const TH_NOTION='https://app.notion.com/p/eddcbc98d63349919bc226c8f4ebc82e';
+const TH_V={wait:'?v=7585386f60394b04be731b5fb6e771a2',board:'?v=cc8cacae821a4945aeb156db75c7d5af',ref:'?v=1f7f201bd8eb4189a79177b4f9546c53'};
+const TH_FLOW=['래퍼런스','발행요청대기','발행요청','발행완료','정산대기중','정산전','정산완료'];
+const TH_SIDE=['검토요청','보관(재업로드대기)','반려'];
+const TH_RULE={views:300,days:2,post:700,cmt:300,blog:1000,fee:10000,feeMin:10,tax:0.033};
+let THD=null, THF='발행요청대기';
+const kstToday=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+const kstDay=t=>t?new Date(new Date(t).getTime()+9*3600e3).toISOString().slice(0,10):'';
+const addDays=(d,n)=>new Date(new Date(d+'T00:00:00Z').getTime()+n*864e5).toISOString().slice(0,10);
+const thLink=(v,t)=>'<a href="'+TH_NOTION+(TH_V[v]||'')+'" target="_blank" rel="noopener" class="btn" style="text-decoration:none;color:#333">'+(t||'노션에서 열기')+' ↗</a>';
+const thTitle=s=>esc(String(s||'').replace(/^\[테스트\]\s*/,''));
+let THERR='';
+async function thLoad(){
+  THERR=''; try{ const res=await Promise.race([sb.functions.invoke('threads-refresh',{body:{}}),new Promise(r=>setTimeout(()=>r({error:{message:'시간 초과'}}),12000))]); if(res&&res.error) THERR=res.error.message||'오류'; else if(res&&res.data&&res.data.ok===false) THERR=res.data.error||'오류'; }catch(e){ THERR=e.message; }
+  const [a,b,c]=await Promise.all([sb.from('th_posts').select('*').limit(5000),sb.from('th_freelancers').select('*'),ME.boss?sb.from('th_payouts').select('*').order('pay_date',{ascending:false}):Promise.resolve({data:[]})]);
+  if(a.error) throw a.error; THD={posts:a.data||[],fl:b.data||[],pay:c.data||[]};
+  THD.synced=THD.posts.reduce((m,p)=>p.synced_at>m?p.synced_at:m,'');
+  const today=kstToday(); THD.today=today;
+  THD.conv=THD.posts.filter(p=>p.mode==='전환컨텐츠'&&p.status!=='래퍼런스');
+}
+function thHead(sub){ return '<div class="sub">'+sub+'</div><div class="rule" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b>노션이 원본</b>이에요. 프리랜서는 노션에서 일하고, 이 화면은 <b>열 때마다 노션에서 바로 가져와요</b>. 고치는 건 노션에서 해요. · 가져온 시각 '+(THD.synced?nDt(THD.synced):'-')+(THERR?' <span style="color:#c0392b">(노션에서 바로 못 가져와서 직전 내용을 보여 줘요)</span>':'')+'</span>'+thLink('board','노션 원고 보드')+'</div>'; }
+async function thView(fn){ try{ await thLoad(); }catch(e){ if(await expired(e)) return; $('#mb').textContent='불러오지 못했어요: '+e.message; return; } fn(); }
+
+/* 오늘 할 일 */
+function viewThToday(){ thView(()=>{
+  const P=THD.posts, t=THD.today, act=THD.fl.filter(f=>f.status==='활동중');
+  const wd=new Date(t+'T00:00:00Z').getUTCDay(); const dn='일월화수목금토'[wd]; const grp=[1,3,5,0].includes(wd)?'1~15번':'16~30번';
+  const madeToday=m=>P.filter(p=>p.mode===m&&p.status!=='래퍼런스'&&kstDay(p.created_time)===t).length;
+  const self=madeToday('일상컨텐츠'), conv=madeToday('전환컨텐츠');
+  const wait=P.filter(p=>p.status==='발행요청대기').length;
+  const needView=THD.conv.filter(p=>p.status==='발행완료'&&p.views==null).length;
+  const judge=THD.conv.filter(p=>p.status==='발행완료'&&p.views!=null&&p.pub_date&&p.pub_date<=addDays(t,-TH_RULE.days)).length;
+  const keep=P.filter(p=>p.status==='보관(재업로드대기)').length, cmt=P.filter(p=>p.status==='정산대기중').length;
+  const pre=P.filter(p=>p.status==='정산전'&&!p.settled&&p.deployer).length;
+  const nextMon=addDays(t,((8-wd)%7)||7);
+  const chk=(ok)=>'<span class="chk'+(ok?' done':'')+'">'+(ok?'✓':'')+'</span>';
+  const row=(ok,what,who,now,btn)=>'<tr><td style="width:36px">'+chk(ok)+'</td><td>'+what+'</td><td class="nw">'+who+'</td><td class="sub">'+now+'</td><td class="nw">'+(btn||'')+'</td></tr>';
+  const W=s=>'<span class="who '+(s==='AI'?'ai':'me')+'">'+s+'</span>';
+  let h=thHead('노션 "사용 매뉴얼"의 매일·수시·월요일 일을 한 화면에 모았어요. 체크는 노션 내용을 보고 자동으로 바뀌어요.');
+  h+='<div class="cards" style="margin-top:12px"><div class="card"><div class="k">활동 중 프리랜서</div><div class="v">'+act.length+'명</div></div><div class="card"><div class="k">오늘 배정</div><div class="v">'+(self+conv)+'건</div><div class="s">전환 '+conv+' · 일상 '+self+'</div></div><div class="card'+(wait?' red':'')+'"><div class="k">검수 기다리는 원고</div><div class="v">'+wait+'건</div></div><div class="card"><div class="k">다음 주정산</div><div class="v">'+nextMon.slice(5).replace('-','/')+'</div><div class="s">정산전 원고 '+pre+'건</div></div></div>';
+  h+='<h3>매일 아침 <span class="sub">오늘 '+dn+'요일 → 레퍼런스 '+grp+' · 일요일도 배정</span></h3><table class="todo"><tr><th></th><th>할 일</th><th>누가</th><th>지금</th><th></th></tr>'
+   +row(act.length&&self>=act.length,'셀프배포(일상글) 만들기 · 프리랜서마다 1개 (AI 프롬프트 1번)',W('AI'),self+' / '+act.length+'건')
+   +row(act.length&&conv>=act.length*2,'전환 원고 배정 · 프리랜서마다 2개 · 레퍼런스 '+grp+' (AI 프롬프트 2번)',W('AI'),conv+' / '+act.length*2+'건')
+   +row(conv>0&&wait===0,'<b>검수</b>: 제목 주제와 본문이 맞는지, 본문 맨 위 "원본:" 번호가 제목과 같은지 보고 "발행요청"으로 바꾸기',W('사람'),'검수 대기 '+wait+'건',thLink('wait','검수하러'))
+   +row(false,'배포 공지방에 공지 붙여 넣기',W('사람'),'"오늘도 컨텐츠 배정되었습니다 🙏 … 어제 올린 전환글은 보관하고 오늘 원고 올려주세요"','<span class="btn" style="cursor:pointer" onclick="navigator.clipboard.writeText(\'오늘도 컨텐츠 배정되었습니다 🙏 전환컨텐츠 원고 2건, 주제별 셀프발행 1건 확인 부탁드려요. 어제 올린 전환글은 보관하고 오늘 원고 올려주세요.\');toast(\'복사했어요\')">문구 복사</span>')+'</table>';
+  h+='<h3>하루 1~2번 (수시)</h3><table class="todo"><tr><th></th><th>할 일</th><th>누가</th><th>지금</th><th></th></tr>'
+   +row(needView===0,'발행완료 원고 조회수 입력',W('사람'),'입력 필요 '+needView+'건','<a href="#th-view" class="btn" style="text-decoration:none;color:#333">조회수 체크</a>')
+   +row(judge===0,'조회수 분류 (발행 '+TH_RULE.days+'일 지난 전환글) · '+TH_RULE.views+' 이상 → 정산대기중 / 미만 → 보관(재업로드) (AI 프롬프트 4번)',W('AI'),'대상 '+judge+'건')
+   +row(keep===0,'재업로드 요청 카톡 보내기',W('사람'),'보관(재업로드대기) '+keep+'건')
+   +row(cmt===0,'댓글 관리 끝난 원고 "정산전"으로',W('사람'),'정산대기중 '+cmt+'건')+'</table>';
+  h+='<h3>매주 월요일 · 주정산</h3><table class="todo">'+row(false,'배포자별 집계 확인 → 계좌이체 → "지급완료 처리" (노션 "주정산 계산 기준" 메모를 AI에 실행)',W('AI')+' '+W('사람'),'다음 정산 '+nextMon.slice(5).replace('-','/')+' · 정산전 '+pre+'건',ME.boss?'<a href="#th-pay" class="btn" style="text-decoration:none;color:#333">주정산</a>':'')+'</table>';
+  $('#mb').innerHTML=h; }); }
+
+/* 1. 레퍼런스 */
+function viewThRef(){ thView(()=>{
+  const refs=THD.posts.filter(p=>p.status==='래퍼런스').sort((a,b)=>(a.ref_no??999)-(b.ref_no??999));
+  const st={}; THD.conv.forEach(p=>{ if(p.ref_no==null) return; const s=st[p.ref_no]=st[p.ref_no]||{n:0,v:[]}; s.n++; if(p.views!=null) s.v.push(p.views); });
+  let h=thHead('회사가 쓴 원본 원고 1~30번. 월·수·금·일 1~15번 / 화·목·토 16~30번을 사람마다 한 칸씩 밀어서 배정해요.');
+  h+='<div style="display:flex;gap:8px;margin:12px 0">'+thLink('ref','노션 레퍼런스 보기')+'<span class="sub" style="align-self:center">새 레퍼런스는 노션에서 템플릿으로 추가해요 · 번호는 1~30, 겹치지 않게</span></div>';
+  h+=refs.length?'<table><tr><th>번호</th><th>제목</th><th>형식</th><th>주제</th><th>배정 횟수</th><th>평균 조회수</th><th>'+TH_RULE.views+' 넘긴 비율</th><th>판단</th></tr>'+refs.map(r=>{ const s=st[r.ref_no]||{n:0,v:[]}; const avg=s.v.length?Math.round(s.v.reduce((a,b)=>a+b,0)/s.v.length):null; const ok=s.v.length?Math.round(s.v.filter(x=>x>=TH_RULE.views).length/s.v.length*100):null;
+    const j=s.v.length<3?'<span class="tag t0">자료 부족</span>':ok>=60?'<span class="tag t1">잘 됨</span>':ok<30?'<span class="tag t2">교체 후보</span>':'<span class="tag t0">보통</span>';
+    return '<tr><td class="nw"><b>'+(r.ref_no??'번호 없음')+'</b></td><td>'+thTitle(r.title)+'</td><td class="nw">'+esc(r.form||'')+'</td><td class="nw">'+esc(r.topic||'')+'</td><td class="nw">'+s.n+'</td><td class="nw">'+(avg!=null?avg.toLocaleString():'-')+'</td><td class="nw">'+(ok!=null?ok+'%':'-')+'</td><td class="nw">'+j+'</td></tr>'; }).join('')+'</table>':'<div class="empty">노션에 "래퍼런스" 상태 원고가 없어요.</div>';
+  h+='<p class="sub">배정 횟수·조회수는 원고 제목의 "레퍼런스N" 번호로 이어요. 조회수가 3건 이상 쌓이면 판단이 나와요 (잘 됨: '+TH_RULE.views+' 넘긴 비율 60% 이상, 교체 후보: 30% 미만).</p>';
+  $('#mb').innerHTML=h; }); }
+
+/* 2. 원고 배정·발행 */
+function viewThPost(){ thView(()=>{
+  const P=THD.posts, c=s=>P.filter(p=>p.status===s).length;
+  const box=(s,extra)=>'<div class="st'+(THF===s?' hot':'')+'" data-thf="'+esc(s)+'" style="cursor:pointer">'+esc(s)+'<b>'+c(s)+'</b>'+(extra?'<span class="mini">'+extra+'</span>':'')+'</div>';
+  let h=thHead('원고 한 건이 지나가는 길이에요. 칸을 누르면 그 상태의 원고만 아래에 나와요.');
+  h+='<div class="flow">'+TH_FLOW.map(s=>box(s,{'발행요청대기':'검수 필요','발행요청':'프리랜서 발행 전','발행완료':'조회수 입력','정산대기중':'댓글 관리 중'}[s])).join('')+'</div><div class="flow" style="margin-top:0">'+TH_SIDE.map(s=>box(s,{'검토요청':'일상글','반려':'정산 안 함'}[s])).join('')+'</div>';
+  const L=P.filter(p=>p.status===THF).sort((a,b)=>(b.created_time||'').localeCompare(a.created_time||''));
+  h+='<h3>'+esc(THF)+' <span class="sub">'+L.length+'건</span> '+(THF==='발행요청대기'?thLink('wait','노션에서 검수'):'')+'</h3>';
+  h+=L.length?'<table><tr><th>만든 날</th><th>원고 제목</th><th>형식</th><th>원본</th><th>프리랜서</th><th>발행일</th><th>조회수</th><th>발행 URL</th></tr>'+L.map(p=>'<tr><td class="nw sub">'+kstDay(p.created_time).slice(5).replace('-','/')+'</td><td>'+thTitle(p.title)+'</td><td class="nw">'+esc(p.form||'')+'</td><td class="nw">'+(p.ref_no?'레퍼런스'+p.ref_no:'<span class="sub">-</span>')+'</td><td class="nw">'+thTitle(p.freelancer)+'</td><td class="nw">'+(p.pub_date?p.pub_date.slice(5).replace('-','/'):'-')+'</td><td class="nw">'+(p.views!=null?p.views.toLocaleString():'-')+'</td><td class="nw">'+(p.url?'<a href="'+esc(p.url)+'" target="_blank" rel="noopener" style="color:#03a04c">열기 ↗</a>':'')+'</td></tr>').join('')+'</table>':'<div class="empty">이 상태의 원고가 없어요.</div>';
+  if(THF==='발행요청대기') h+='<div class="rule">노션 테스트에서 AI 배정 원고 6건 중 2건이 <b>다른 레퍼런스 본문</b>으로 섞였어요. 발행요청으로 바꾸기 전에 본문 맨 위 "원본:" 번호가 제목의 레퍼런스 번호와 같은지 꼭 봐 주세요.</div>';
+  $('#mb').innerHTML=h; document.querySelectorAll('[data-thf]').forEach(e=>e.onclick=()=>{THF=e.dataset.thf;viewThPost();}); }); }
+
+/* 3. 조회수 체크 */
+function viewThView(){ thView(()=>{
+  const t=THD.today, cut=addDays(t,-TH_RULE.days), C=THD.conv.filter(p=>p.status==='발행완료');
+  const need=C.filter(p=>p.views==null), due=C.filter(p=>p.views!=null&&p.pub_date&&p.pub_date<=cut), wait=C.filter(p=>p.views!=null&&!(p.pub_date&&p.pub_date<=cut));
+  const wk=addDays(t,-6); const recent=THD.conv.filter(p=>p.views!=null&&p.pub_date&&p.pub_date>=wk); const okp=recent.length?Math.round(recent.filter(p=>p.views>=TH_RULE.views).length/recent.length*100):null;
+  let h=thHead('발행 '+TH_RULE.days+'일 지난 전환글만 판정해요. <b>'+TH_RULE.views+' 이상 → 정산대기중</b>(댓글 관리 후 정산전) · <b>'+TH_RULE.views+' 미만 → 보관 후 재업로드</b> · 일상글은 판정 안 함');
+  h+='<div class="cards" style="margin-top:12px"><div class="card'+(need.length?' red':'')+'"><div class="k">조회수 입력 필요</div><div class="v">'+need.length+'건</div></div><div class="card"><div class="k">판정 대상 ('+TH_RULE.days+'일 지남)</div><div class="v">'+due.length+'건</div></div><div class="card"><div class="k">최근 7일 '+TH_RULE.views+' 넘긴 비율</div><div class="v">'+(okp!=null?okp+'%':'-')+'</div><div class="s">전환글 '+recent.length+'건 기준</div></div><div class="card"><div class="k">보관(재업로드대기)</div><div class="v">'+THD.posts.filter(p=>p.status==='보관(재업로드대기)').length+'건</div></div></div>';
+  const tb=(L,j)=>L.length?'<table><tr><th>발행일</th><th>원고</th><th>프리랜서</th><th>발행 URL</th><th>조회수</th><th>'+(j?'판정 (AI 프롬프트 4번으로 노션에 반영)':'')+'</th></tr>'+L.map(p=>'<tr><td class="nw">'+(p.pub_date?p.pub_date.slice(5).replace('-','/'):'-')+'</td><td>'+thTitle(p.title)+'</td><td class="nw">'+thTitle(p.freelancer)+'</td><td class="nw">'+(p.url?'<a href="'+esc(p.url)+'" target="_blank" rel="noopener" style="color:#03a04c">열기 ↗</a>':'')+'</td><td class="nw"><b>'+(p.views!=null?p.views.toLocaleString():'<span class="tag t3">입력 필요</span>')+'</b></td><td class="nw">'+(j?(p.views>=TH_RULE.views?'<span class="tag t1">정산대기중</span>':'<span class="tag t2">보관 · 재업로드</span>'):'')+'</td></tr>').join('')+'</table>':'<div class="empty">없어요.</div>';
+  h+='<h3>조회수 입력 필요 <span class="sub">발행 URL을 열어 조회수를 보고 노션 "조회수" 칸에 적어 주세요</span> '+thLink('board','노션 보드')+'</h3>'+tb(need,false);
+  h+='<h3>판정 대상</h3>'+tb(due,true);
+  h+='<h3>아직 '+TH_RULE.days+'일 안 됨</h3>'+tb(wait,false);
+  $('#mb').innerHTML=h; }); }
+
+/* 4. 주정산 (대표님만) */
+function viewThPay(){ if(!ME.boss){ $('#mb').innerHTML='<div class="empty">대표님 계정에서만 보여요.</div>'; return; } thView(()=>{
+  const pre=THD.posts.filter(p=>p.status==='정산전'&&!p.settled);
+  const by={}; pre.forEach(p=>{ const k=p.deployer||'(배포자 없음)'; const s=by[k]=by[k]||{n:0,c:0,b:0,names:new Set()}; s.n++; if(p.form==='댓글형') s.c++; if(p.form==='블로그형') s.b++; if(p.freelancer) s.names.add(p.freelancer.replace(/^\[테스트\]\s*/,'')); });
+  const dup={}; THD.fl.forEach(f=>{ if(!f.deployer) return; (dup[f.deployer]=dup[f.deployer]||[]).push(f.name.replace(/^\[테스트\]\s*/,'')); });
+  let tot={n:0,c:0,b:0,fee:0,g:0,t:0,net:0};
+  const rows=Object.entries(by).map(([k,s])=>{ if(k==='(배포자 없음)') return '<tr><td><b>배포자 없음</b></td><td>'+s.n+'</td><td colspan="7" style="color:#c0392b">배포자가 비어 있어 정산에서 빠져요. 노션에서 배포자를 넣어 주세요.</td></tr>';
+    const fee=s.n>=TH_RULE.feeMin?TH_RULE.fee:0, g=s.n*TH_RULE.post+s.c*TH_RULE.cmt+s.b*TH_RULE.blog+fee, t=Math.round(g*TH_RULE.tax); tot.n+=s.n;tot.c+=s.c;tot.b+=s.b;tot.fee+=fee;tot.g+=g;tot.t+=t;tot.net+=g-t;
+    const d=(dup[k]||[]).length>1?'<div style="color:#c0392b;font-size:12px">⚠ 같은 노션 계정에 프리랜서 '+dup[k].length+'명('+esc(dup[k].join('·'))+') · 중복 정산 확인</div>':'';
+    return '<tr><td><b>'+esc(k)+'</b><div class="sub">'+esc([...s.names].join(', '))+'</div>'+d+'</td><td>'+s.n+'</td><td>'+s.c+'</td><td>'+s.b+'</td><td>'+(fee?fee.toLocaleString():'<span class="sub">'+TH_RULE.feeMin+'건 미만</span>')+'</td><td>'+g.toLocaleString()+'</td><td>'+t.toLocaleString()+'</td><td><b>'+(g-t).toLocaleString()+'</b></td></tr>'; }).join('');
+  const t=THD.today, wd=new Date(t+'T00:00:00Z').getUTCDay(), nextMon=addDays(t,((8-wd)%7)||7);
+  let h=thHead('매주 월요일 · <b>배포자(노션 계정) 기준</b>으로 "정산전" 원고를 세요. 실제 입력·지급완료 처리는 노션에서 AI로 해요.');
+  h+='<h3>이번 정산 미리 보기 <span class="sub">다음 정산 '+nextMon.slice(5).replace('-','/')+'(월) · 지금 노션의 정산전 원고 기준</span></h3>';
+  h+=pre.length?'<table><tr><th>배포자</th><th>정산전 원고</th><th>댓글형</th><th>블로그형</th><th>주관리비</th><th>공제 전</th><th>3.3%</th><th>지급액</th></tr>'+rows+'<tr style="background:#fafafa"><td><b>합계</b></td><td>'+tot.n+'</td><td>'+tot.c+'</td><td>'+tot.b+'</td><td>'+tot.fee.toLocaleString()+'</td><td>'+tot.g.toLocaleString()+'</td><td>'+tot.t.toLocaleString()+'</td><td><b>'+tot.net.toLocaleString()+'</b></td></tr></table>':'<div class="empty">지금 정산전 원고가 없어요.</div>';
+  h+='<div class="rule">계산: 원고 '+TH_RULE.post+'원 · 댓글형 +'+TH_RULE.cmt+'원 · 블로그형 '+TH_RULE.blog.toLocaleString()+'원(노션에도 추정값) · 정산전 원고 '+TH_RULE.feeMin+'건 이상이면 주관리비 '+TH_RULE.fee.toLocaleString()+'원 · 3.3% 공제. 계좌·주민번호는 이 사이트에 가져오지 않아요. 이체할 때 노션 비공개 표에서 보세요.</div>';
+  h+='<h3>지난 정산 기록 <span class="sub">노션 "주정산 관리"</span></h3>'+(THD.pay.length?'<table><tr><th>정산일</th><th>정산명</th><th>이름</th><th>원고</th><th>댓글형</th><th>관리비</th><th>지급액</th><th>상태</th></tr>'+THD.pay.map(p=>'<tr><td class="nw">'+(p.pay_date||'-')+'</td><td>'+thTitle(p.title)+'</td><td>'+esc(p.name||'')+'</td><td>'+(p.posts??'')+'</td><td>'+(p.comment_cnt??'')+'</td><td>'+(p.mgmt_fee?p.mgmt_fee.toLocaleString():'-')+'</td><td><b>'+(p.net??0).toLocaleString()+'</b></td><td><span class="tag '+(p.pay_status==='지급완료'?'t1':p.pay_status==='지급예정'?'t3':'t0')+'">'+esc(p.pay_status||'')+'</span></td></tr>').join('')+'</table>':'<div class="empty">기록이 없어요.</div>');
+  $('#mb').innerHTML=h; }); }
+
+/* 프리랜서 */
+function viewThFl(){ thView(()=>{
+  const t=THD.today, wk=addDays(t,-6);
+  let h=thHead('파워컨텐츠의 "계정·외주"에 해당해요. 개인정보(주민번호·계좌·연락처)는 이 사이트에 없어요.');
+  const L=THD.fl.slice().sort((a,b)=>(a.status==='활동중'?0:1)-(b.status==='활동중'?0:1));
+  h+=L.length?'<table style="margin-top:12px"><tr><th>이름</th><th>상태</th><th>스레드 아이디</th><th>담당 카테고리</th><th>배포자(노션 계정)</th><th>최근 7일 발행</th><th>평균 조회수</th><th>'+TH_RULE.views+' 넘긴 비율</th><th>재업로드 대기</th><th></th></tr>'+L.map(f=>{ const mine=THD.conv.filter(p=>p.freelancer===f.name); const v=mine.filter(p=>p.views!=null).map(p=>p.views); const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null; const ok=v.length?Math.round(v.filter(x=>x>=TH_RULE.views).length/v.length*100):null;
+    const w=THD.posts.filter(p=>p.freelancer===f.name&&p.pub_date&&p.pub_date>=wk).length; const keep=THD.posts.filter(p=>p.freelancer===f.name&&p.status==='보관(재업로드대기)').length;
+    return '<tr><td><b>'+thTitle(f.name)+'</b></td><td><span class="tag '+(f.status==='활동중'?'t1':'t0')+'">'+esc(f.status||'')+'</span></td><td class="nw">@'+esc(f.thread_id||'')+'</td><td>'+esc(f.category||'')+'</td><td>'+esc(f.deployer||'')+'</td><td>'+w+'</td><td>'+(avg!=null?avg.toLocaleString():'-')+'</td><td>'+(ok!=null?ok+'%':'-')+'</td><td>'+keep+'</td><td class="nw">'+(f.page_url?'<a href="'+esc(f.page_url)+'" target="_blank" rel="noopener" style="color:#03a04c">개인 페이지 ↗</a>':'')+'</td></tr>'; }).join('')+'</table>':'<div class="empty">프리랜서가 없어요.</div>';
+  h+='<div class="rule"><b>새 프리랜서 받을 때</b> (노션 매뉴얼 4번): 알바몬 공고 확인 → 온보딩 멘트 1번부터 → 개인정보는 노션 비공개 표에만 → 개인 페이지 템플릿 복제 → 노션 공유 3곳 → 공개용 표에 행 추가 → 카톡 공지. 다음 날 아침부터 배정에 자동으로 들어가요.<br>우수 스레더(매주 2명, 상금 1만 원)는 위 표의 발행 수·조회수·'+TH_RULE.views+' 넘긴 비율을 보고 대표님이 골라요.</div>';
+  $('#mb').innerHTML=h; }); }
+
+/* 설정 (지금은 보기만) */
+function viewThSet(){ $('#mb').innerHTML='<div class="sub">노션에 흩어진 기준을 한곳에 모았어요. 지금은 보기만 돼요. 바꾸려면 노션 운영 규칙·AI 프롬프트를 고치고, 저에게 말씀해 주시면 이 화면도 같이 바꿔요.</div><table style="margin-top:12px"><tr><th>항목</th><th>지금 값</th><th>근거</th></tr>'
+  +[['하루 배정량','일상글 1 + 전환글 2 (계정 활성화 전 1주일: 일상 2 + 전환 1)','강의 · 10/27 결정'],['레퍼런스 로테이션','월·수·금·일 1~15번 / 화·목·토 16~30번, 사람마다 한 칸씩','강의 19:03'],['휴무일','일요일도 배정, 따로 공지한 날만 쉼','10/26 결정'],['조회수 기준',TH_RULE.views+' (발행 '+TH_RULE.days+'일 지난 전환글)','10/26 결정 (강의 원문 100)'],['단가','원고 700 · 댓글형 +300 · 블로그형 1,000 · 주관리비 10,000 (정산전 10건 이상) · 3.3% 공제','강의 정산 화면 (블로그형은 추정)'],['발행 규칙','직접 타이핑 · 글 간격 1시간 이상 · 예약발행 금지 · 전날 전환글은 보관 후 새 원고','운영 규칙 4번']].map(r=>'<tr><td class="nw"><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="sub">'+r[2]+'</td></tr>').join('')+'</table>'; }
+
+/* ---------- 내 업무 ---------- */
+let WHO=null, MTAB='now';
+async function viewMy(){
+  WHO=WHO||ME.name;
+  try{ await Promise.all([loadWL(),loadR()]); }catch(e){ if(await expired(e)) return; $('#mb').textContent='불러오지 못했어요: '+e.message; return; }
+  drawMy();
+}
+function drawMy(){
+  const who=WHO; const rs=RS.filter(r=>r.status!=='드롭');
+  let h='<div class="sub">할 일 · 막혀 있는 것 · 노하우만 모아 보여요. AI 대화 · 슬랙 #업무기록 · 여기에 적은 것이 모두 모여요</div>';
+  h+='<div class="rtabs">'+[...PEOPLE,'전체'].map(p=>'<span class="'+(who===p?'on':'')+'" data-p="'+p+'">'+p+(p===ME.name?' (나)':'')+'</span>').join('')+'<span style="margin-left:auto;border:none;background:none"></span>'+[['now','지금'],['week','이번 주'],['month','이번 달']].map(([k,t])=>'<span class="'+(MTAB===k?'on':'')+'" data-m="'+k+'">'+t+'</span>').join('')+'</div>';
+  if(ME.boss&&who!=='전체'&&who!=='대표님'&&who!==ME.name) h+='<div style="text-align:right;margin-top:6px"><span class="btn" id="setpw_staff" style="cursor:pointer">'+esc(who)+' 비밀번호 정해 주기</span> <span class="sub">메일 없이 바로 바뀌어요 · 정한 비밀번호를 직접 전해 주세요</span></div>';
+  h+='<div id="mynotice"></div>';
+  h+='<div class="box" style="margin-top:8px"><div class="quick"><select id="q_type"><option>한 일</option><option>할 일</option><option>막힌 것</option><option>노하우</option></select><input id="q_text" class="w2" placeholder="한 줄로 적기  예) 공급처 A와 통화, 샘플 11/3 도착"><select id="q_r"><option value="">관련 R (선택)</option>'+rs.map(r=>'<option>'+esc(r.name)+'</option>').join('')+'</select><select id="q_owner"><option value="">맡을 사람 (할 일)</option>'+PEOPLE.map(p=>'<option>'+p+'</option>').join('')+'</select><button class="pbtn" id="q_save">적기</button></div><div class="sub" style="margin-top:6px">적는 기준: 돈·일정·제품에 영향 / 다른 사람이 알아야 함 / 다음에 또 할 일. 잡담·단순 확인은 안 적어요.</div></div>';
+  if(MTAB==='now'){
+    const todo=WL.filter(r=>isOpenTodo(r)&&mine(r,who)), blk=WL.filter(r=>isBlocked(r)&&mine(r,who)), kn=WL.filter(r=>r.people&&r.type==='노하우');
+    h+='<div class="cols3"><div class="box"><h4>할 일 <span class="sub">'+todo.length+'</span></h4><div class="sub">대화가 끝난 뒤에도 남아 있는 일 · 끝내면 체크</div>'+(todo.map(r=>'<div class="li"><input type="checkbox" data-done="'+r.id+'"><div class="bd">'+esc(r.content)+'<div class="mt">맡은 사람: '+esc(r.owner||r.who)+' · '+r.log_date.slice(5)+' 생김'+(r.product?' · '+esc(r.product):'')+'</div></div></div>').join('')||'<div class="li sub">남은 할 일이 없어요</div>')+'</div>'
+      +'<div class="box"><h4>막혀 있는 것 <span class="sub">'+blk.length+'</span></h4><div class="sub">누가 무엇을 하면 풀리는지 · 풀리면 체크</div>'+(blk.map(r=>'<div class="li"><input type="checkbox" data-solve="'+r.id+'"><div class="bd"><span class="tag '+({'막힘':'t2','보류':'t3'}[r.status]||'t0')+'">'+esc(r.status)+'</span> '+esc(r.content)+(r.unblock?'<div class="mt">풀려면: '+esc(r.unblock)+'</div>':'')+'<div class="wh">'+esc(r.who||'')+' · '+r.log_date.slice(5)+'</div></div></div>').join('')||'<div class="li sub">막혀 있는 일이 없어요</div>')+'</div>'
+      +'<div class="box"><h4>노하우 <span class="sub">회사 공용 '+kn.length+'</span></h4><div class="sub">직접 확인한 것 · 다음에 다시 쓸 수 있는 것</div>'+(kn.map(r=>'<div class="li"><div class="bd">'+esc(r.content)+'<div class="wh">'+esc(r.who||'')+' · '+esc(r.area||'')+' · '+r.log_date.slice(5)+'</div></div></div>').join('')||'<div class="li sub">아직 없어요</div>')+'</div></div>';
+  } else h+=report(MTAB,who);
+  $('#mb').innerHTML=h; myNotices(who);
+  if($('#setpw_staff')) $('#setpw_staff').onclick=async()=>{ const p1=prompt(who+'님의 새 비밀번호 (8자 이상)'); if(!p1) return; if(p1.length<8){ toast('8자 이상으로 정해 주세요'); return; } const p2=prompt('한 번 더 입력해 주세요'); if(p1!==p2){ toast('두 번 입력한 비밀번호가 달라요'); return; } const {error}=await sb.rpc('admin_set_password',{p_name:who,p_pw:p1}); if(error){ if(await expired(error)) return; toast('바꾸지 못했어요: '+error.message); return; } toast(who+' 비밀번호를 바꿨어요. 직접 전해 주세요'); };
+  document.querySelectorAll('#mb [data-p]').forEach(e=>e.onclick=()=>{WHO=e.dataset.p;drawMy();});
+  document.querySelectorAll('#mb [data-m]').forEach(e=>e.onclick=()=>{MTAB=e.dataset.m;drawMy();});
+  document.querySelectorAll('#mb [data-done]').forEach(e=>e.onchange=()=>setStatus(e.dataset.done,'완료'));
+  document.querySelectorAll('#mb [data-solve]').forEach(e=>e.onchange=()=>setStatus(e.dataset.solve,'해결됨'));
+  $('#q_save').onclick=quickSave; $('#q_text').addEventListener('keydown',e=>{if(e.key==='Enter')quickSave();});
+}
+async function setStatus(id,st){ const {error}=await sb.from('work_log').update({status:st,closed_date:today()}).eq('id',id); if(error){ if(await expired(error)) return; toast('바꾸지 못했어요: '+error.message);return;} const r=WL.find(x=>x.id==id); if(r){r.status=st;r.closed_date=today();} toast(st==='완료'?'끝낸 일로 옮겼어요':'해결됨으로 바꿨어요'); drawMy(); }
+async function quickSave(){
+  const text=$('#q_text').value.trim(); if(!text){toast('한 줄을 적어 주세요');return;}
+  const tsel=$('#q_type').value; const type=tsel==='막힌 것'?'막힌 점':tsel;
+  const row={uploader:ME.name,who:ME.name,type,content:text,quote:text.slice(0,60),log_date:today(),log_time:nowHM(),session_id:'site',session_title:'사이트 직접 기록',seq:Math.floor(Date.now()/1000),importance:'보통',source:'사이트 직접 기록',people:true,product:$('#q_r').value||null,area:''};
+  if(type==='할 일'){row.status='진행 중';row.owner=$('#q_owner').value||ME.name;} if(type==='막힌 점') row.status='막힘'; if(type==='한 일') row.status='완료';
+  const {error}=await sb.from('work_log').insert(row); if(error){ if(await expired(error)) return; toast('저장하지 못했어요: '+error.message);return;}
+  toast('적었어요'); await loadWL(); drawMy();
+}
+function report(kind,who){
+  const t=today(); const start=kind==='week'?weekStart(t):t.slice(0,8)+'01'; const inP=x=>x&&x>=start&&x<=t; const by=r=>who==='전체'||mine(r,who);
+  const big=WL.filter(r=>r.importance==='높음'&&r.type==='결정'&&inP(r.log_date)&&(who==='전체'||r.who===who||r.uploader===who));
+  const doneF=r=>r.people!==false&&((r.type==='한 일'&&inP(r.log_date))||(r.type==='할 일'&&r.status==='완료'&&inP(r.closed_date)));
+  const done=WL.filter(r=>doneF(r)&&by(r)), left=WL.filter(r=>isOpenTodo(r)&&by(r)), blk=WL.filter(r=>isBlocked(r)&&by(r)), kn=WL.filter(r=>r.people&&r.type==='노하우'&&inP(r.log_date)&&(who==='전체'||r.who===who));
+  const li=(a,f)=>a.length?'<ul>'+a.map(f).join('')+'</ul>':'<div class="none">없음</div>';
+  const per=PEOPLE.map(p=>{const n=WL.filter(r=>inP(r.log_date)&&(r.who===p||r.uploader===p)).length;return '<li><b>'+p+'</b>: '+(n?'기록 '+n+' · 끝낸 일 '+WL.filter(r=>doneF(r)&&mine(r,p)).length+' · 막힌 것 '+WL.filter(r=>isBlocked(r)&&mine(r,p)).length:'기록 없음')+'</li>';}).join('');
+  return '<div class="box rep" style="margin-top:12px"><div class="sub">'+(kind==='week'?'이번 주':'이번 달')+' ('+start+' ~ '+t+') · '+who+'</div>'
+   +'<h3>큰 결정</h3>'+li(big,r=>'<li>'+r.log_date.slice(5)+' '+esc(r.content)+(r.reason?' <span class="sub">— '+esc(r.reason)+'</span>':'')+'</li>')
+   +'<h3>끝낸 일</h3>'+li(done,r=>'<li>'+esc(r.content)+' <span class="sub">'+esc(r.owner||r.who||'')+'</span></li>')
+   +'<h3>아직 남은 할 일</h3>'+li(left,r=>'<li>'+esc(r.content)+' <span class="sub">'+esc(r.owner||r.who)+' · '+r.log_date.slice(5)+' 생김</span></li>')
+   +'<h3>막혀 있는 것</h3>'+li(blk,r=>'<li>'+esc(r.content)+(r.unblock?' <span class="sub">— 풀려면: '+esc(r.unblock)+'</span>':'')+'</li>')
+   +'<h3>새 노하우</h3>'+li(kn,r=>'<li>'+esc(r.content)+'</li>')
+   +'<h3>사람별 한 줄</h3><ul>'+per+'</ul></div>';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#modal').classList.add('hidden');});
+boot();
+
+</script></body></html>
