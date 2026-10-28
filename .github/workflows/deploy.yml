@@ -1,0 +1,32 @@
+# 사이트 자동 반영
+# - main(실제 사이트)에 합쳐지면 → 실제 사이트에 반영
+# - 변경 요청(PR)이 올라오면 → 미리보기 주소를 만들어 PR에 댓글로 남김
+name: deploy
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 클라우드플레어에 올리기
+        id: cf
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 01480912e74c88805ca113958396066c
+          command: pages deploy site --project-name=sanggeupji-work --branch=${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'main' }} --commit-dirty=true
+      - name: 미리보기 주소 댓글
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.cf.outputs.deployment-url }}';
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number,
+              body: `미리보기: ${url}\n\n이 주소에서 바뀐 화면을 눌러 볼 수 있어요. 저장 버튼은 누르지 마세요(실제 데이터가 바뀌어요).\n대표님이 승인하고 합치면 실제 사이트에 반영돼요.` });
