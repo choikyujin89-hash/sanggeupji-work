@@ -5,6 +5,7 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: '회사 업무 사이트', body: e.data ? e.data.text() : '' }; }
   const opt = { body: d.body || '', icon: '/icon-512.png', tag: d.tag || undefined, requireInteraction: !!d.sticky, renotify: !!d.tag, data: { url: d.url || '/', ack: d.ack || null } };
+  if (d.image) opt.image = d.image;
   if (d.ack) opt.actions = [{ action: 'ack', title: '확인했어요' }, { action: 'open', title: '내용 보기' }];
   e.waitUntil(self.registration.showNotification(d.title || '회사 업무 사이트', opt));
 });
@@ -30,3 +31,4 @@ self.addEventListener('notificationclick', e => {
   }
   e.waitUntil(openUrl(url));
 });
+
