@@ -141,7 +141,7 @@ async function boot(){
   const {data:name,error}=await sb.rpc('my_name');
   if(error||!name){ try{ const fr=await sb.rpc('th_my_fl_id'); if(!fr.error&&fr.data){ ME={fl:fr.data,email:session.user.email,name:'프리랜서'}; showOnly('app'); flBoot(); return; } }catch(_){} await sb.auth.signOut({scope:'local'}); showOnly('login'); $('#lmsg').textContent=error?'로그인이 풀렸어요. 다시 로그인해 주세요.':'등록되지 않은 계정이에요. 대표님께 문의하세요.'; return; }
   ME={name,email:session.user.email};
-  try{ const {data:b}=await sb.rpc('is_boss'); ME.boss=!!b; }catch(e){ ME.boss=false; } try{ const {data:pp}=await sb.rpc('has_perm',{p:'th_settle'}); ME.thSettle=!!pp||ME.boss; }catch(e){ ME.thSettle=ME.boss; }
+  try{ const {data:b}=await sb.rpc('is_boss'); ME.boss=!!b; }catch(e){ ME.boss=false; } try{ const {data:pp}=await sb.rpc('has_perm',{p:'th_settle'}); const {data:pa}=await sb.rpc('has_perm',{p:'th_admin'}); ME.thAdmin=!!pa||ME.boss; ME.thSettle=!!pp||ME.thAdmin; }catch(e){ ME.thSettle=ME.boss; ME.thAdmin=ME.boss; }
   showOnly('app');
   VIEW=(location.hash||'#home').slice(1)||'home'; if(VIEW.includes('=')) VIEW='home';
   renderSide(); go(VIEW); noticePoll(); pushRefresh();
@@ -157,10 +157,10 @@ $('#npbtn').onclick=async()=>{ const a=$('#np1').value,b=$('#np2').value; if(a.l
   const {error}=await sb.auth.updateUser({password:a}); if(error){$('#npmsg').textContent='저장하지 못했어요: '+error.message;return;} NEED_PW=false; toast('비밀번호를 정했어요'); boot(); };
 
 /* ---------- 메뉴 (목업과 같은 구조) ---------- */
-const TITLES={home:'전체 현황',notice:'전달사항',r:'R(제품) 목록',mywork:'내 업무','pc-pool':'파워컨텐츠 › 키워드별 R 후보 (AI 추천)','pc-kw':'파워컨텐츠 › 1. 키워드','pc-pub':'파워컨텐츠 › 2. 발행','pc-rank':'파워컨텐츠 › 3. 노출체크','pc-perf':'파워컨텐츠 › 4. 성과','pc-edit':'파워컨텐츠 › 수정 기록','pc-acc':'파워컨텐츠 › 계정·외주','pc-set':'파워컨텐츠 › 설정',th:'스레드 › 오늘 할 일','th-today':'스레드 › 오늘 할 일','th-ref':'스레드 › 1. 레퍼런스','th-post':'스레드 › 2. 원고 배정·발행','th-view':'스레드 › 3. 조회수 체크','th-pay':'스레드 › 4. 주정산','th-fl':'스레드 › 프리랜서','th-set':'스레드 › 설정','th-tpl':'스레드 › 템플릿·문서','th-log':'스레드 › 변경 기록'};
+const TITLES={home:'전체 현황',notice:'전달사항',r:'R(제품) 목록',mywork:'내 업무','pc-pool':'파워컨텐츠 › 키워드별 R 후보 (AI 추천)','pc-kw':'파워컨텐츠 › 1. 키워드','pc-pub':'파워컨텐츠 › 2. 발행','pc-rank':'파워컨텐츠 › 3. 노출체크','pc-perf':'파워컨텐츠 › 4. 성과','pc-edit':'파워컨텐츠 › 수정 기록','pc-acc':'파워컨텐츠 › 계정·외주','pc-set':'파워컨텐츠 › 설정',th:'스레드 › 오늘 할 일','th-today':'스레드 › 오늘 할 일','th-ref':'스레드 › 1. 레퍼런스','th-post':'스레드 › 2. 원고 배정·발행','th-view':'스레드 › 3. 조회수 체크','th-pay':'스레드 › 4. 주정산','th-fl':'스레드 › 프리랜서','th-set':'스레드 › 설정','th-tpl':'스레드 › 템플릿·문서','th-doc':'스레드 › 템플릿·문서','th-log':'스레드 › 변경 기록'};
 function isOpen(s){ try{ const v=localStorage.getItem('sys_'+s); return v===null?true:v==='1'; }catch(e){ return true; } }
 function renderSide(){
-  const it=(p,t,top)=>'<div class="it'+(top?' top':'')+(VIEW===p?' on':'')+'" data-p="'+p+'">'+t+'</div>';
+  const it=(p,t,top)=>'<div class="it'+(top?' top':'')+(VIEW===p||(p==='th-tpl'&&String(VIEW).startsWith('th-doc'))?' on':'')+'" data-p="'+p+'">'+t+'</div>';
   const sys=(s,t,inner)=>'<div class="grp sys'+(isOpen(s)?'':' closed')+'" data-s="'+s+'"><span class="ar">▾</span> '+t+'</div><div class="sysbox'+(isOpen(s)?'':' closed')+'">'+inner+'</div>';
   $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1)
    +'<div class="g1">채널 시스템</div>'
@@ -175,10 +175,10 @@ function renderSide(){
   $('#logout').onclick=async()=>{ await sb.auth.signOut({scope:'local'}); location.hash=''; location.reload(); };
 }
 $('#mbtn').onclick=()=>$('#side').classList.toggle('open');
-function go(v){ if(ME&&ME.fl){ flGo(FT[v]?v:'f-today'); return; } VIEW=v; if(location.hash.slice(1)!==v) location.hash=v; renderSide(); const t=TITLES[v]||''; $('#m').innerHTML='<div class="crumb">회사 업무 사이트 › '+t+'</div><h2>'+t+'</h2><div id="mb">불러오는 중…</div>'; (VIEWS[v]||blank)(); $('#m').scrollTop=0; }
+function go(v){ if(ME&&ME.fl){ flGo(FT[String(v).split('/')[0]]?v:'f-today'); return; } VIEW=v; if(location.hash.slice(1)!==v) location.hash=v; renderSide(); const base=String(v).split('/')[0], arg=String(v).slice(base.length+1); const t=TITLES[base]||''; $('#m').innerHTML='<div class="crumb">회사 업무 사이트 › '+t+'</div><h2>'+t+'</h2><div id="mb">불러오는 중…</div>'; (VIEWS[base]||blank)(arg); $('#m').scrollTop=0; }
 function blank(){ $('#mb').innerHTML='<div class="sub">아직 만들지 않은 화면이에요</div><div class="ph">화면 설계(목업)는 있고, 실제 데이터가 연결되면 채워요.</div>'; }
-const VIEWS={th:viewThToday,'th-today':viewThToday,'th-ref':viewThRef,'th-post':viewThPost,'th-view':viewThView,'th-pay':viewThPay,'th-fl':viewThFl,'th-set':viewThSet,'th-tpl':viewThTpl,'th-log':viewThLog,home:viewHome,notice:viewNotice,r:viewR,mywork:viewMy,'pc-pool':viewPool};
-window.addEventListener('hashchange',()=>{const v=location.hash.slice(1); if(ME&&ME.fl){ if(FT[v]&&v!==FLV) flGo(v); return; } if(ME&&v&&v!==VIEW&&TITLES[v])go(v);});
+const VIEWS={th:viewThToday,'th-today':viewThToday,'th-ref':viewThRef,'th-post':viewThPost,'th-view':viewThView,'th-pay':viewThPay,'th-fl':viewThFl,'th-set':viewThSet,'th-tpl':viewThTpl,'th-doc':viewThDoc,'th-log':viewThLog,home:viewHome,notice:viewNotice,r:viewR,mywork:viewMy,'pc-pool':viewPool};
+window.addEventListener('hashchange',()=>{const v=decodeURIComponent(location.hash.slice(1)); const base=v.split('/')[0]; if(ME&&ME.fl){ if(FT[base]&&v!==FLV) flGo(v); return; } if(ME&&v&&v!==VIEW&&TITLES[base])go(v);});
 
 /* ---------- 데이터 ---------- */
 let WL=[], RS=[];
@@ -460,12 +460,77 @@ const addDays=(d,n)=>new Date(new Date(d+'T00:00:00Z').getTime()+n*864e5).toISOS
 const md=d=>d?d.slice(5).replace('-','/'):'-';
 const thTitle=s=>esc(String(s||'').replace(/^\[테스트\]\s*/,''));
 const RULE=()=>({views:+SET.views_min||300,days:+SET.judge_days||2,post:+SET.price_post||700,cmt:+SET.price_comment||300,blog:+SET.price_blog||1000,fee:+SET.mgmt_fee||10000,feeMin:+SET.mgmt_min||10,tax:+SET.tax_rate||0.033});
-const thModal=h=>{ $('#mbox').innerHTML=h; $('#modal').classList.remove('hidden'); };
+const thModal=(h,wide)=>{ $('#mbox').style.maxWidth=wide?'960px':''; $('#mbox').innerHTML=h; $('#modal').classList.remove('hidden'); };
 const thClose=()=>$('#modal').classList.add('hidden');
 const thOk=async(res,msg)=>{ if(res&&res.error){ if(await expired(res.error)) return false; toast((msg||'처리하지 못했어요')+': '+res.error.message); return false; } return true; };
 function rotGroup(day){ const r=SET.rotation||{A:[1,15],B:[16,30],A_days:[1,3,5,0],B_days:[2,4,6]}; const wd=new Date(day+'T00:00:00Z').getUTCDay(); return (r.A_days||[]).includes(wd)?{name:'A',from:r.A[0],to:r.A[1]}:{name:'B',from:r.B[0],to:r.B[1]}; }
 function flQuota(f,day){ const n=SET.daily_new||{days:7,daily:2,conv:1}, o=SET.daily_normal||{daily:1,conv:2}; if(!f||!f.start_date) return {daily:o.daily,conv:o.conv,newbie:false}; const k=Math.round((new Date(day+'T00:00:00Z')-new Date(f.start_date+'T00:00:00Z'))/864e5)+1; return (k>=1&&k<=n.days)?{daily:n.daily,conv:n.conv,newbie:true,k}:{daily:o.daily,conv:o.conv,newbie:false,k}; }
 function refCheck(p){ const m=String(p.title||'').match(/레퍼런스\s*(\d+)/); const tn=m?+m[1]:null; const first=String(p.body||'').split('\n').find(l=>l.trim())||''; const om=first.match(/원본:.*?레퍼런스\s*(\d+)/); const on=om?+om[1]:null; const ok=tn!=null&&p.ref_no!=null&&tn===p.ref_no&&(on==null||on===tn)&&/^\s*원본:/.test(first); return {ok,tn,on,first}; }
+/* ---------- 본문 편집기 (노션처럼: 사진 붙여넣기·끌어다 놓기·크기 조절, Ctrl+B 굵게) ----------
+   저장 형식(글): 굵게 = **글자**, 사진 = [사진 N] 또는 [사진 N | 너비px]  → 배정·프리랜서 화면이 그대로 읽음 */
+const IMG_MARK=/\[사진 (\d+)(?:\s*\|\s*(\d+))?\]/;
+function inlineFmt(s){ return esc(s).replace(/\*\*([^*\n][\s\S]*?)\*\*/g,'<b>$1</b>'); }
+function textBlock(s){ // "| 칸 | 칸 |" 줄 묶음 → 표, 나머지는 글
+  const L=String(s).split('\n'); let out='', buf=[];
+  const isRow=l=>/^\s*\|.*\|\s*$/.test(l);
+  const flush=()=>{ if(!buf.length) return; const rows=buf.map(l=>l.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim())); const n=Math.max(...rows.map(r=>r.length));
+    out+='<table class="dtbl"><thead><tr>'+rows[0].map(c=>'<th>'+inlineFmt(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(r=>'<tr>'+Array.from({length:n},(_,i)=>'<td>'+inlineFmt(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>'; buf=[]; };
+  L.forEach((l,i)=>{ if(isRow(l)){ buf.push(l); return; } if(buf.length){ flush(); out+=inlineFmt(l)+(i<L.length-1?'\n':''); return; } out+=inlineFmt(l)+(i<L.length-1?'\n':''); });
+  flush(); return out; }
+function richBody(t,list){ if(!document.getElementById('dtbl-css')){ const st=document.createElement('style'); st.id='dtbl-css'; st.textContent='.dtbl{border-collapse:collapse;width:100%;margin:6px 0 10px;white-space:normal;font-size:13px;background:#fff}.dtbl th,.dtbl td{border:1px solid #e3e6ea;padding:6px 8px;text-align:left;vertical-align:top}.dtbl th{background:#f3f5f8;font-weight:600;white-space:nowrap}.dtbl td:first-child{white-space:nowrap}@media(max-width:600px){.dtbl{display:block;overflow-x:auto}}'; document.head.appendChild(st); } list=Array.isArray(list)?list:[]; const used=new Set(); const parts=String(t||'').split(/(\[사진 \d+(?:\s*\|\s*\d+)?\][^\n]*)/);
+  const h=parts.map(s=>{ const m=s.match(/^\[사진 (\d+)(?:\s*\|\s*(\d+))?\](.*)$/); if(m){ const x=list[+m[1]-1]; if(!x) return esc(s); used.add(+m[1]-1); const w=m[2]?'width:'+(+m[2])+'px;':'max-height:520px;'; return '<div style="margin:8px 0"><img data-th-img="'+esc(x.path||x)+'" alt="사진 '+m[1]+'" style="'+w+'max-width:100%;border-radius:8px;border:1px solid #eceef1;background:#f4f5f7">'+(m[3].trim()?'<div class="sub">'+esc(m[3].trim())+'</div>':'')+'</div>'; } return textBlock(s); }).join('');
+  const rest=list.filter((_,i)=>!used.has(i));
+  return '<div style="white-space:pre-wrap;line-height:1.7;background:#fafbfc;border:1px solid #eceef1;border-radius:8px;padding:12px;font-size:14px">'+h+'</div>'+imgsHtml(rest); }
+function bodyToEdHtml(t,list){ list=Array.isArray(list)?list:[]; const used=new Set();
+  let h=String(t||'').split(/(\[사진 \d+(?:\s*\|\s*\d+)?\])/).map(s=>{ const m=s.match(/^\[사진 (\d+)(?:\s*\|\s*(\d+))?\]$/); if(m&&list[+m[1]-1]){ used.add(+m[1]-1); const p=list[+m[1]-1].path||list[+m[1]-1]; return '<img class="ed-img" data-th-img="'+esc(p)+'" style="'+(m[2]?'width:'+(+m[2])+'px':'max-height:520px')+'">'; } return inlineFmt(s).replace(/\n/g,'<br>'); }).join('');
+  list.forEach((x,i)=>{ if(!used.has(i)) h+='<br><img class="ed-img" data-th-img="'+esc(x.path||x)+'" style="max-height:520px">'; });
+  return h; }
+function edToBody(root){ let out=''; const imgs=[];
+  const nl=()=>{ if(out&&!out.endsWith('\n')) out+='\n'; };
+  const walk=(n,bold)=>{ for(const c of n.childNodes){
+    if(c.nodeType===3){ out+=c.nodeValue.replace(/\u00a0/g,' '); continue; }
+    if(c.nodeType!==1) continue; const tg=c.tagName;
+    if(tg==='BR'){ out+='\n'; continue; }
+    if(tg==='IMG'){ const p=c.dataset.thImg; if(!p) continue; imgs.push({path:p}); const w=parseInt(c.style.width)||0; out+='[사진 '+imgs.length+(w?' | '+w:'')+']'; continue; }
+    if(c.classList&&c.classList.contains('ed-ui')) continue;
+    const isB=!bold&&(tg==='B'||tg==='STRONG'||/^(bold|[6-9]00)$/.test(c.style&&c.style.fontWeight||''));
+    if(tg==='DIV'||tg==='P'||/^H\d$/.test(tg)||tg==='LI'){ nl(); walk(c,bold); nl(); continue; }
+    if(isB){ const before=out.length; out+='**'; walk(c,true); if(out.length===before+2) out=out.slice(0,before); else out+='**'; continue; }
+    walk(c,bold); } };
+  walk(root,false);
+  return {body:out.replace(/\*\*(\s*)\*\*/g,'$1').replace(/\n{3,}/g,'\n\n').replace(/\n+$/,''), images:imgs}; }
+async function uploadOne(f,prefix){ const ext=(f.name&&f.name.includes('.')?f.name.split('.').pop():(f.type.split('/')[1]||'png')).toLowerCase().replace(/[^a-z0-9]/g,''); const path=prefix+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'.'+ext; const {error}=await sb.storage.from('th-media').upload(path,f,{contentType:f.type||'image/png'}); if(error){ toast('사진을 올리지 못했어요: '+error.message); return null; } return path; }
+function makeEditor(boxId,body,images,prefix){
+  if(!document.getElementById('ed-css')){ /* 편집기 */ const st=document.createElement('style'); st.id='ed-css'; st.textContent='.ed img.ed-img{max-width:100%;height:auto;display:inline-block;vertical-align:bottom;border-radius:8px;cursor:pointer}'; document.head.appendChild(st); }
+  const box=$('#'+boxId); box.style.position='relative';
+  box.innerHTML='<div class="sub" style="margin-bottom:4px">사진은 캡처 후 <b>Ctrl+V</b>로 붙여 넣거나 파일을 끌어다 놓아요 · 사진을 누르고 오른쪽 아래 ■를 끌면 크기 조절 · Delete로 지우기 · <b>Ctrl+B</b> 굵게</div><div class="ed" contenteditable="true" style="min-height:240px;max-height:60vh;overflow:auto;white-space:pre-wrap;line-height:1.7;border:1px solid #d9dce1;border-radius:8px;padding:12px;font-size:14px;background:#fff;outline:none"></div><div class="ed-ui ed-h" style="display:none;position:absolute;width:14px;height:14px;background:#2f7cf6;border:2px solid #fff;border-radius:3px;cursor:nwse-resize;z-index:5"></div>';
+  const ed=box.querySelector('.ed'), hd=box.querySelector('.ed-h'); let sel=null;
+  try{ document.execCommand('styleWithCSS',false,false); }catch(_){}
+  ed.innerHTML=bodyToEdHtml(body,images); fillImgs(ed);
+  const place=()=>{ if(!sel||!ed.contains(sel)){ hd.style.display='none'; sel=null; return; } const er=box.getBoundingClientRect(), r=sel.getBoundingClientRect(); hd.style.left=(r.right-er.left-9)+'px'; hd.style.top=(r.bottom-er.top-9)+'px'; hd.style.display=(r.bottom<ed.getBoundingClientRect().top||r.top>ed.getBoundingClientRect().bottom)?'none':'block'; };
+  const pick=img=>{ ed.querySelectorAll('img.ed-img').forEach(i=>i.style.outline=''); sel=img; if(img){ img.style.outline='2px solid #2f7cf6'; } place(); };
+  ed.addEventListener('click',e=>{ pick(e.target.tagName==='IMG'?e.target:null); });
+  ed.addEventListener('scroll',place);
+  ed.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){ e.preventDefault(); document.execCommand('bold'); return; }
+    if((e.ctrlKey||e.metaKey)&&['i','u'].includes(e.key.toLowerCase())){ e.preventDefault(); return; }
+    if(sel&&(e.key==='Delete'||e.key==='Backspace')){ e.preventDefault(); sel.remove(); pick(null); } });
+  const insertImg=async(path,range)=>{ const img=document.createElement('img'); img.className='ed-img'; img.dataset.thImg=path; img.style.maxHeight='520px';
+    const s=window.getSelection(); let r=range||(s.rangeCount&&ed.contains(s.getRangeAt(0).commonAncestorContainer)?s.getRangeAt(0):null);
+    if(!r){ r=document.createRange(); r.selectNodeContents(ed); r.collapse(false); }
+    r.deleteContents(); const br=document.createElement('br'); r.insertNode(br); r.insertNode(img); r.setStartAfter(br); r.collapse(true); s.removeAllRanges(); s.addRange(r); await fillImgs(ed); return img; };
+  const addFiles=async(files,range)=>{ for(const f of files){ if(!/^image\//.test(f.type)) continue; toast('사진 올리는 중…'); const p=await uploadOne(f,prefix); if(p) await insertImg(p,range); } };
+  ed.addEventListener('paste',async e=>{ const files=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type)); e.preventDefault();
+    if(files.length){ await addFiles(files); return; } const t=e.clipboardData.getData('text/plain'); if(t) document.execCommand('insertText',false,t); });
+  ed.addEventListener('dragover',e=>{ if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+  ed.addEventListener('drop',async e=>{ const files=[...(e.dataTransfer&&e.dataTransfer.files||[])]; if(!files.length) return; e.preventDefault(); const r=document.caretRangeFromPoint?document.caretRangeFromPoint(e.clientX,e.clientY):null; await addFiles(files,r); });
+  hd.addEventListener('pointerdown',e=>{ if(!sel) return; e.preventDefault(); hd.setPointerCapture(e.pointerId); const x0=e.clientX, w0=sel.getBoundingClientRect().width, max=ed.clientWidth-24;
+    const mv=ev=>{ const w=Math.max(60,Math.min(max,Math.round(w0+ev.clientX-x0))); sel.style.width=w+'px'; sel.style.maxHeight='none'; place(); };
+    const up=()=>{ hd.removeEventListener('pointermove',mv); hd.removeEventListener('pointerup',up); };
+    hd.addEventListener('pointermove',mv); hd.addEventListener('pointerup',up); });
+  return { get:()=>edToBody(ed), el:ed, addFiles };
+}
+
 function bodyHtml(t){ return '<div style="white-space:pre-wrap;line-height:1.7;background:#fafbfc;border:1px solid #eceef1;border-radius:8px;padding:12px;font-size:14px">'+esc(t||'(본문 없음)')+'</div>'; }
 function imgsHtml(list){ list=Array.isArray(list)?list:[]; if(!list.length) return ''; return '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+list.map(x=>'<img data-th-img="'+esc(x.path||x)+'" alt="'+esc(x.caption||'사진')+'" style="width:140px;height:140px;object-fit:cover;border-radius:8px;background:#eee">').join('')+'</div>'; }
 async function fillImgs(root){ const els=[...(root||document).querySelectorAll('img[data-th-img]')]; if(!els.length) return; const paths=[...new Set(els.map(e=>e.dataset.thImg))]; const {data}=await sb.storage.from('th-media').createSignedUrls(paths,3600); const map={}; (data||[]).forEach(d=>{ if(d.signedUrl) map[d.path]=d.signedUrl; }); els.forEach(e=>{ if(map[e.dataset.thImg]) e.src=map[e.dataset.thImg]; }); }
@@ -501,7 +566,7 @@ function viewThToday(){ thView(()=>{
   const P=THD.posts, t=THD.today, act=THD.fl.filter(f=>f.status==='활동중'), g=rotGroup(t), RR=RULE();
   const hol=THD.hol.find(h=>h.day===t);
   const wd=new Date(t+'T00:00:00Z').getUTCDay(); const dn='일월화수목금토'[wd];
-  const made=m=>P.filter(p=>p.mode===m&&p.status!=='래퍼런스'&&(p.assign_day===t||kstDay(p.created_time)===t)).length;
+  const made=m=>P.filter(p=>p.mode===m&&p.status!=='래퍼런스'&&(isSite(p)?p.assign_day===t:kstDay(p.created_time)===t)).length;
   const self=made('일상컨텐츠'), conv=made('전환컨텐츠');
   const need=act.reduce((s,f)=>{ const q=flQuota(f,t); s.d+=q.daily; s.c+=q.conv; return s; },{d:0,c:0});
   const wait=P.filter(p=>p.status==='발행요청대기').length;
@@ -600,7 +665,7 @@ async function postDetail(id){
   const log=await sb.from('th_log').select('*').eq('post_id',id).order('at',{ascending:false}).limit(20);
   let h='<h3>'+thTitle(p.title)+'</h3><div class="sub">'+esc(p.status)+' · '+esc(p.freelancer||'')+' · '+esc(p.form||'')+(p.url?' · <a href="'+esc(p.url)+'" target="_blank" rel="noopener">발행 URL ↗</a>':'')+'</div>';
   if(chk) h+='<div class="rule" style="margin-top:10px;'+(chk.ok?'':'border-color:#e5484d;background:#fff1f1;color:#c0392b')+'">'+(chk.ok?'✓ 제목 레퍼런스'+chk.tn+' · 본문 "원본:" 번호 일치':'⚠ 번호 확인 필요: 제목 '+(chk.tn??'없음')+' / 원고 칸 '+(p.ref_no??'없음')+' / 본문 첫 줄 "'+esc(chk.first.slice(0,40))+'"')+'</div>';
-  h+='<div style="display:grid;grid-template-columns:'+(ref?'1fr 1fr':'1fr')+';gap:12px;margin-top:10px"><div><b>이 원고</b>'+bodyHtml(p.body)+imgsHtml(p.images)+(p.comment_script?'<div class="sub" style="margin-top:6px">댓글 대본</div>'+bodyHtml(p.comment_script):'')+'</div>'+(ref?'<div><b>원본: '+thTitle(ref.title)+'</b>'+bodyHtml(ref.body)+imgsHtml(ref.images)+'</div>':'')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:'+(ref?'1fr 1fr':'1fr')+';gap:12px;margin-top:10px"><div><b>이 원고</b>'+richBody(p.body,p.images)+(p.comment_script?'<div class="sub" style="margin-top:6px">댓글 대본</div>'+bodyHtml(p.comment_script):'')+'</div>'+(ref?'<div><b>원본: '+thTitle(ref.title)+'</b>'+richBody(ref.body,ref.images)+'</div>':'')+'</div>';
   if((log.data||[]).length) h+='<details style="margin-top:10px"><summary class="sub" style="cursor:pointer">변경 기록 '+log.data.length+'건</summary>'+log.data.map(l=>'<div class="sub">'+nDt(l.at)+' · '+esc(l.actor_name||'')+' · '+esc(l.from_status||'')+' → '+esc(l.to_status||'')+'</div>').join('')+'</details>';
   const can=isSite(p);
   h+='<div class="mact">';
@@ -644,14 +709,14 @@ function viewThPay(){ thView(()=>{
   const dup={}; THD.fl.forEach(f=>{ if(!f.deployer) return; (dup[f.deployer]=dup[f.deployer]||[]).push(f.name.replace(/^\[테스트\]\s*/,'')); });
   let tot={n:0,c:0,b:0,fee:0,g:0,t:0,net:0};
   const rows=Object.entries(by).map(([k,s])=>{ if(k==='(배포자 없음)') return '<tr><td><b>배포자 없음</b></td><td>'+s.n+'</td><td colspan="6" style="color:#c0392b">배포자가 비어 있어 정산에서 빠져요.</td></tr>';
-    const fee=s.n>=RR.feeMin?RR.fee:0, g=s.n*RR.post+s.c*RR.cmt+s.b*RR.blog+fee, t=Math.round(g*RR.tax); tot.n+=s.n;tot.c+=s.c;tot.b+=s.b;tot.fee+=fee;tot.g+=g;tot.t+=t;tot.net+=g-t;
+    const fee=s.n>=RR.feeMin?RR.fee:0, g=(s.n-s.b)*RR.post+s.c*RR.cmt+s.b*RR.blog+fee, t=Math.round(g*RR.tax); tot.n+=s.n;tot.c+=s.c;tot.b+=s.b;tot.fee+=fee;tot.g+=g;tot.t+=t;tot.net+=g-t;
     const d=(dup[k]||[]).length>1?'<div style="color:#c0392b;font-size:12px">⚠ 같은 배포자에 프리랜서 '+dup[k].length+'명('+esc(dup[k].join('·'))+') · 한 번만 정산돼요</div>':'';
     return '<tr><td><b>'+esc(k)+'</b><div class="sub">'+esc([...s.names].join(', '))+'</div>'+d+'</td><td>'+s.n+'</td><td>'+s.c+'</td><td>'+s.b+'</td><td>'+(fee?fee.toLocaleString():'<span class="sub">'+RR.feeMin+'건 미만</span>')+'</td><td>'+g.toLocaleString()+'</td><td>'+t.toLocaleString()+'</td><td><b>'+(g-t).toLocaleString()+'</b></td></tr>'; }).join('');
   const t=THD.today, wd=new Date(t+'T00:00:00Z').getUTCDay(), nextMon=addDays(t,((8-wd)%7)||7), wk=weekStart(t);
   let h=thHead('매주 월요일 · <b>배포자 기준</b>으로 "정산전" 원고를 세요. 확정·지급완료는 대표님'+(ME.thSettle&&!ME.boss?'과 권한 받은 직원(나)':' (또는 권한 받은 직원)')+'이 해요.');
   h+='<h3>이번 정산 미리 보기 <span class="sub">다음 정산 '+md(nextMon)+'(월) · 이번 주 시작 '+md(wk)+'</span> '+(can&&pre.some(isSite)?'<span class="pbtn" id="pay_confirm" style="cursor:pointer">이번 주 정산 확정</span>':'')+'</h3>';
   h+=pre.length?'<table><tr><th>배포자</th><th>정산전 원고</th><th>댓글형</th><th>블로그형</th><th>주관리비</th><th>공제 전</th><th>3.3%</th><th>지급액</th></tr>'+rows+'<tr style="background:#fafafa"><td><b>합계</b></td><td>'+tot.n+'</td><td>'+tot.c+'</td><td>'+tot.b+'</td><td>'+tot.fee.toLocaleString()+'</td><td>'+tot.g.toLocaleString()+'</td><td>'+tot.t.toLocaleString()+'</td><td><b>'+tot.net.toLocaleString()+'</b></td></tr></table>':'<div class="empty">지금 정산전 원고가 없어요.</div>';
-  h+='<div class="rule">계산: 원고 '+RR.post+'원 · 댓글형 +'+RR.cmt+'원 · 블로그형 '+RR.blog.toLocaleString()+'원 · 정산전 원고 '+RR.feeMin+'건 이상이면 주관리비 '+RR.fee.toLocaleString()+'원 · '+(RR.tax*100).toFixed(1)+'% 공제(반올림). 계좌·주민번호는 이 사이트에 없어요. 이체할 때 노션 비공개 표에서 보세요.</div>';
+  h+='<div class="rule">계산: 원고 '+RR.post+'원 · 댓글형 +'+RR.cmt+'원 · 블로그형 1건 '+RR.blog.toLocaleString()+'원(원고 단가 대신) · 정산전 원고 '+RR.feeMin+'건 이상이면 주관리비 '+RR.fee.toLocaleString()+'원 · '+(RR.tax*100).toFixed(1)+'% 공제(반올림). 계좌·주민번호는 이 사이트에 없어요. 이체할 때 노션 비공개 표에서 보세요.</div>';
   const due=THD.pay.filter(p=>p.pay_status==='지급예정');
   h+='<h3>지급 예정 '+(can&&due.some(isSite)?'<span class="pbtn" id="pay_paid" style="cursor:pointer">고른 것 지급완료</span>':'')+'</h3>'+(due.length?'<table><tr><th></th><th>정산명</th><th>원고</th><th>댓글형</th><th>블로그형</th><th>관리비</th><th>지급액</th></tr>'+due.map(p=>'<tr><td>'+(can&&isSite(p)?'<input type="checkbox" data-paid="'+p.id+'">':'')+'</td><td>'+thTitle(p.title)+'</td><td>'+(p.posts??'')+'</td><td>'+(p.comment_cnt??'')+'</td><td>'+(p.blog_cnt??'')+'</td><td>'+(p.mgmt_fee?p.mgmt_fee.toLocaleString():'-')+'</td><td><b>'+(p.net??0).toLocaleString()+'</b></td></tr>').join('')+'</table>':'<div class="empty">없어요.</div>');
   const done=THD.pay.filter(p=>p.pay_status!=='지급예정');
@@ -685,6 +750,7 @@ function viewThFl(){ thView(()=>{
     if(f.user_id&&f.status==='퇴사'&&to!=='퇴사'){ const r=await flFn({action:'unban',freelancer_id:f.id}); if(r.error) toast('상태는 바꿨지만 로그인 풀기 실패: '+r.error.message); }
     toast('바꿨어요'); viewThFl(); });
   document.querySelectorAll('[data-flmake]').forEach(e=>e.onclick=async()=>{ const f=THD.fl.find(x=>x.id===e.dataset.flmake); const em=(f.email||prompt(f.name+'님 로그인 메일 주소')||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('메일 주소를 확인해 주세요'); return; } if(!f.email) await sb.from('th_freelancers').update({email:em}).eq('id',f.id); const r=await flFn({action:'create',email:em,freelancer_id:f.id}); if(r.error){ toast('계정을 못 만들었어요: '+r.error.message); return; } showTempPw(f.name,em,r.data.temp_password); });
+  document.querySelectorAll('[data-fldel]').forEach(e=>e.onclick=async()=>{ const f=THD.fl.find(x=>x.id===e.dataset.fldel); if(!confirm(f.name+'님 로그인 계정을 완전히 지울까요? (명단·원고 기록은 남아요)')) return; const r=await flFn({action:'delete',freelancer_id:f.id}); if(r.error){ toast('못 지웠어요: '+r.error.message); return; } toast('계정을 지웠어요'); viewThFl(); });
   document.querySelectorAll('[data-flreset]').forEach(e=>e.onclick=async()=>{ const f=THD.fl.find(x=>x.id===e.dataset.flreset); if(!confirm(f.name+'님 임시 비밀번호를 새로 만들까요? 지금 비밀번호는 못 써요.')) return; const r=await flFn({action:'reset',freelancer_id:f.id}); if(r.error){ toast('못 했어요: '+r.error.message); return; } showTempPw(f.name,f.email||'',r.data.temp_password); });
 }); }
 function flForm(){
@@ -699,38 +765,60 @@ function flForm(){
     showTempPw(name,email,r.data.temp_password); };
 }
 
-/* 템플릿·문서 */
+/* 템플릿·문서 — 목록 (제목을 누르면 문서 페이지) */
+const docHref=(k,id,edit)=>'#th-doc/'+k+'-'+encodeURIComponent(id)+(edit?'/e':'');
 function viewThTpl(){ (async()=>{
-  const [a,b]=await Promise.all([sb.from('th_templates').select('*').order('name'),sb.from('th_docs').select('*').order('sort')]);
+  const [a,b]=await Promise.all([sb.from('th_templates').select('id,name,kind,category,updated_at').order('name'),sb.from('th_docs').select('id,slug,title,audience,sort,updated_at').order('sort')]);
   if(a.error||b.error){ const e=a.error||b.error; if(await expired(e)) return; $('#mb').textContent='불러오지 못했어요: '+e.message; return; }
-  let h='<div class="sub">원고 템플릿(일상글·댓글형·블로그)과 프리랜서에게 보여 줄 메뉴얼, 직원용 문서(온보딩 멘트 등)예요.</div>';
-  h+='<h3>원고 템플릿 <span class="pbtn" id="tp_add" style="cursor:pointer">+ 추가</span></h3>'+(a.data.length?'<table><tr><th>이름</th><th>종류</th><th>카테고리</th><th>고친 날</th><th></th></tr>'+a.data.map(x=>'<tr><td><b>'+esc(x.name)+'</b></td><td>'+esc(x.kind)+'</td><td>'+esc(x.category||'')+'</td><td class="sub">'+nDt(x.updated_at)+'</td><td><span class="btn" style="cursor:pointer" data-tp="'+x.id+'">보기·고치기</span></td></tr>').join('')+'</table>':'<div class="empty">템플릿이 없어요.</div>');
-  h+='<h3>문서 <span class="pbtn" id="dc_add" style="cursor:pointer">+ 추가</span></h3>'+(b.data.length?'<table><tr><th>순서</th><th>제목</th><th>누가 봄</th><th>고친 날</th><th></th></tr>'+b.data.map(x=>'<tr><td>'+x.sort+'</td><td><b>'+esc(x.title)+'</b> <span class="sub">'+esc(x.slug)+'</span></td><td>'+(x.audience==='freelancer'?'<span class="tag t1">프리랜서</span>':'<span class="tag t0">직원</span>')+'</td><td class="sub">'+nDt(x.updated_at)+'</td><td><span class="btn" style="cursor:pointer" data-dc="'+x.id+'">보기·고치기</span></td></tr>').join('')+'</table>':'<div class="empty">문서가 없어요.</div>');
+  const lk=(href,t)=>'<a href="'+href+'" style="color:#111;font-weight:600;text-decoration:none">'+esc(t)+'</a>';
+  let h='<div class="sub">제목을 누르면 문서가 열리고, 맨 아래 [수정]으로 그 페이지에서 바로 고칠 수 있어요.</div>';
+  h+='<h3>원고 템플릿 <a class="pbtn" href="'+docHref('t','new')+'" style="text-decoration:none">+ 추가</a></h3>'+(a.data.length?'<table><tr><th>이름</th><th>종류</th><th>카테고리</th><th>고친 날</th></tr>'+a.data.map(x=>'<tr><td>'+lk(docHref('t',x.id),x.name)+'</td><td>'+esc(x.kind)+'</td><td>'+esc(x.category||'')+'</td><td class="sub">'+nDt(x.updated_at)+'</td></tr>').join('')+'</table>':'<div class="empty">템플릿이 없어요.</div>');
+  h+='<h3>문서 <a class="pbtn" href="'+docHref('d','new')+'" style="text-decoration:none">+ 추가</a></h3>'+(b.data.length?'<table><tr><th>순서</th><th>제목</th><th>누가 봄</th><th>고친 날</th></tr>'+b.data.map(x=>'<tr><td>'+x.sort+'</td><td>'+lk(docHref('d',x.slug),x.title)+'</td><td>'+(x.audience==='freelancer'?'<span class="tag t1">프리랜서</span>':'<span class="tag t0">직원</span>')+'</td><td class="sub">'+nDt(x.updated_at)+'</td></tr>').join('')+'</table>':'<div class="empty">문서가 없어요.</div>');
   $('#mb').innerHTML=h;
-  $('#tp_add').onclick=()=>tplForm(null); $('#dc_add').onclick=()=>docForm(null);
-  document.querySelectorAll('[data-tp]').forEach(e=>e.onclick=()=>tplForm(a.data.find(x=>x.id===e.dataset.tp)));
-  document.querySelectorAll('[data-dc]').forEach(e=>e.onclick=()=>docForm(b.data.find(x=>x.id===e.dataset.dc)));
 })(); }
-function tplForm(x){
-  thModal('<h3>'+(x?'템플릿 고치기':'템플릿 추가')+'</h3><div class="frm"><div><label>이름</label><input id="tf_name" value="'+esc(x?x.name:'')+'"></div><div><label>종류</label><select id="tf_kind">'+['일상','댓글형','블로그'].map(k=>'<option'+(x&&x.kind===k?' selected':'')+'>'+k+'</option>').join('')+'</select></div><div class="w2"><label>카테고리 (일상글이면)</label><input id="tf_cat" value="'+esc(x?x.category||'':'')+'"></div><div class="w2"><label>내용</label><textarea id="tf_body" rows="14" style="width:100%">'+esc(x?x.body||'':'')+'</textarea></div><div class="w2"><label>사진</label>'+imgsHtml(x&&x.images)+'<input type="file" id="tf_file" accept="image/*" multiple></div></div><div class="mact">'+(x?'<button class="btn" id="tf_del" style="margin-right:auto;color:#c0392b">지우기</button>':'')+'<button class="btn" id="tf_cancel">닫기</button><button class="pbtn" id="tf_save">저장</button></div>');
-  fillImgs($('#mbox')); $('#tf_cancel').onclick=thClose;
-  if($('#tf_del')) $('#tf_del').onclick=async()=>{ if(!confirm('이 템플릿을 지울까요?')) return; if(await thOk(await sb.from('th_templates').delete().eq('id',x.id),'지우지 못했어요')){ thClose(); viewThTpl(); } };
-  $('#tf_save').onclick=async()=>{ const name=$('#tf_name').value.trim(); if(!name){ toast('이름을 넣어 주세요'); return; } const images=(x&&Array.isArray(x.images)?x.images:[]).concat(await uploadImgs($('#tf_file'),'templates')); const row={name,kind:$('#tf_kind').value,category:$('#tf_cat').value.trim()||null,body:$('#tf_body').value,images,updated_at:new Date().toISOString()}; const res=x?await sb.from('th_templates').update(row).eq('id',x.id):await sb.from('th_templates').insert(row); if(await thOk(res,'저장하지 못했어요')){ thClose(); toast('저장했어요'); viewThTpl(); } };
-}
-function docForm(x){
-  thModal('<h3>'+(x?'문서 고치기':'문서 추가')+'</h3><div class="frm"><div><label>제목</label><input id="df_title" value="'+esc(x?x.title:'')+'"></div><div><label>영문 이름 (겹치지 않게)</label><input id="df_slug" value="'+esc(x?x.slug:'')+'"></div><div><label>누가 봄</label><select id="df_aud"><option value="freelancer"'+(x&&x.audience==='freelancer'?' selected':'')+'>프리랜서</option><option value="staff"'+(x&&x.audience==='staff'?' selected':'')+'>직원만</option></select></div><div><label>순서</label><input id="df_sort" type="number" value="'+(x?x.sort:0)+'"></div><div class="w2"><label>내용</label><textarea id="df_body" rows="16" style="width:100%">'+esc(x?x.body||'':'')+'</textarea></div><div class="w2"><label>사진</label>'+imgsHtml(x&&x.images)+'<input type="file" id="df_file" accept="image/*" multiple></div></div><div class="mact">'+(x?'<button class="btn" id="df_del" style="margin-right:auto;color:#c0392b">지우기</button>':'')+'<button class="btn" id="df_cancel">닫기</button><button class="pbtn" id="df_save">저장</button></div>');
-  fillImgs($('#mbox')); $('#df_cancel').onclick=thClose;
-  if($('#df_del')) $('#df_del').onclick=async()=>{ if(!confirm('이 문서를 지울까요?')) return; if(await thOk(await sb.from('th_docs').delete().eq('id',x.id),'지우지 못했어요')){ thClose(); viewThTpl(); } };
-  $('#df_save').onclick=async()=>{ const title=$('#df_title').value.trim(), slug=$('#df_slug').value.trim(); if(!title||!/^[a-z0-9-]+$/.test(slug)){ toast('제목과 영문 이름(소문자·숫자·-)을 넣어 주세요'); return; } const images=(x&&Array.isArray(x.images)?x.images:[]).concat(await uploadImgs($('#df_file'),'docs')); const row={title,slug,audience:$('#df_aud').value,sort:+$('#df_sort').value||0,body:$('#df_body').value,images,updated_at:new Date().toISOString()}; const res=x?await sb.from('th_docs').update(row).eq('id',x.id):await sb.from('th_docs').insert(row); if(await thOk(res,'저장하지 못했어요')){ thClose(); toast('저장했어요'); viewThTpl(); } };
-}
+/* 문서 페이지: 보기 + 같은 페이지에서 고치기 */
+function viewThDoc(arg){ (async()=>{
+  const parts=String(arg||'').split('/'), m=(parts[0]||'').match(/^([dt])-(.*)$/); const edit=parts[1]==='e';
+  if(!m){ go('th-tpl'); return; }
+  const kind=m[1], key=decodeURIComponent(m[2]), isNew=key==='new', isDoc=kind==='d';
+  let x=null;
+  if(!isNew){ const r=isDoc?await sb.from('th_docs').select('*').eq('slug',key).maybeSingle():await sb.from('th_templates').select('*').eq('id',key).maybeSingle(); if(r.error){ if(await expired(r.error)) return; $('#mb').textContent='불러오지 못했어요: '+r.error.message; return; } x=r.data; if(!x){ $('#mb').innerHTML='<div class="empty">없는 문서예요.</div>'; return; } }
+  const title=isNew?(isDoc?'새 문서':'새 템플릿'):(isDoc?x.title:x.name);
+  $('#m').querySelector('h2').textContent=title; $('#m').querySelector('.crumb').innerHTML='회사 업무 사이트 › <a href="#th-tpl" style="color:inherit">스레드 › 템플릿·문서</a> › '+esc(title);
+  const top=(btns)=>'<div style="display:flex;gap:8px;align-items:center;margin:4px 0 14px;flex-wrap:wrap"><a class="btn" href="#th-tpl" style="text-decoration:none;color:#333">← 목록</a>'+btns+'</div>';
+  if(!edit&&!isNew){
+    const meta=isDoc?((x.audience==='freelancer'?'<span class="tag t1">프리랜서도 봄</span>':'<span class="tag t0">직원만</span>')+' <span class="sub">고친 날 '+nDt(x.updated_at)+'</span>'):('<span class="tag t0">'+esc(x.kind)+(x.category?' · '+esc(x.category):'')+'</span> <span class="sub">고친 날 '+nDt(x.updated_at)+'</span>');
+    $('#mb').innerHTML=top('<span style="margin-left:auto">'+meta+'</span>')+'<div style="max-width:980px">'+richBody(x.body,x.images)+'<div style="display:flex;justify-content:flex-end;margin-top:14px"><a class="pbtn" href="'+docHref(kind,isDoc?x.slug:x.id,true)+'" style="text-decoration:none">수정</a></div></div>';
+    fillImgs($('#mb')); return; }
+  // 고치기 (같은 페이지)
+  let f='<div class="frm" style="max-width:980px">';
+  if(isDoc) f+='<div><label>제목</label><input id="dp_title" value="'+esc(x?x.title:'')+'"></div><div><label>영문 이름 (주소에 쓰여요, 겹치지 않게)</label><input id="dp_slug" value="'+esc(x?x.slug:'')+'"></div><div><label>누가 봄</label><select id="dp_aud"><option value="freelancer"'+(x&&x.audience==='freelancer'?' selected':'')+'>프리랜서도 봄</option><option value="staff"'+(!x||x.audience==='staff'?' selected':'')+'>직원만</option></select></div><div><label>순서</label><input id="dp_sort" type="number" value="'+(x?x.sort:0)+'"></div>';
+  else f+='<div><label>이름</label><input id="dp_name" value="'+esc(x?x.name:'')+'"></div><div><label>종류</label><select id="dp_kind">'+['일상','댓글형','블로그'].map(k=>'<option'+(x&&x.kind===k?' selected':'')+'>'+k+'</option>').join('')+'</select></div><div class="w2"><label>카테고리 (일상글이면: 다이어트 / 뷰티 / 일상파워블로거형)</label><input id="dp_cat" value="'+esc(x?x.category||'':'')+'"></div>';
+  f+='<div class="w2"><label>내용</label><div id="dp_ed"></div><div class="sub" style="margin-top:4px">사진 파일로 넣기 (커서 자리에): <input type="file" id="dp_file" accept="image/*" multiple></div></div></div>';
+  $('#mb').innerHTML=top('<button class="pbtn" id="dp_save">저장</button><a class="btn" href="'+(isNew?'#th-tpl':docHref(kind,isDoc?x.slug:x.id))+'" style="text-decoration:none;color:#333">취소</a>'+(isNew?'':'<button class="btn" id="dp_del" style="margin-left:auto;color:#c0392b">지우기</button>'))+f;
+  const ED=makeEditor('dp_ed',x?x.body:'',x&&x.images,isDoc?'docs':'templates');
+  $('#dp_file').onchange=async e=>{ await ED.addFiles([...e.target.files]); e.target.value=''; };
+  let dirty=false; ED.el.addEventListener('input',()=>dirty=true);
+  const leave=()=>!dirty||confirm('저장하지 않은 내용이 있어요. 나갈까요?');
+  $('#mb').querySelectorAll('a.btn').forEach(a=>a.addEventListener('click',e=>{ if(!leave()) e.preventDefault(); }));
+  if($('#dp_del')) $('#dp_del').onclick=async()=>{ if(!confirm('이 '+(isDoc?'문서':'템플릿')+'를 지울까요?')) return; const r=isDoc?await sb.from('th_docs').delete().eq('id',x.id):await sb.from('th_templates').delete().eq('id',x.id); if(await thOk(r,'지우지 못했어요')){ dirty=false; toast('지웠어요'); location.hash='th-tpl'; } };
+  $('#dp_save').onclick=async()=>{ const R=ED.get(); let res, back;
+    if(isDoc){ const t=$('#dp_title').value.trim(), slug=$('#dp_slug').value.trim(); if(!t||!/^[a-z0-9-]+$/.test(slug)){ toast('제목과 영문 이름(소문자·숫자·-)을 넣어 주세요'); return; }
+      const row={title:t,slug,audience:$('#dp_aud').value,sort:+$('#dp_sort').value||0,body:R.body,images:R.images,updated_at:new Date().toISOString()};
+      res=x?await sb.from('th_docs').update(row).eq('id',x.id):await sb.from('th_docs').insert(row); back=docHref('d',slug); }
+    else { const n=$('#dp_name').value.trim(); if(!n){ toast('이름을 넣어 주세요'); return; }
+      const row={name:n,kind:$('#dp_kind').value,category:$('#dp_cat').value.trim()||null,body:R.body,images:R.images,updated_at:new Date().toISOString()};
+      res=x?await sb.from('th_templates').update(row).eq('id',x.id).select('id'):await sb.from('th_templates').insert(row).select('id'); back=docHref('t',(res.data&&res.data[0]&&res.data[0].id)||(x&&x.id)||''); }
+    if(await thOk(res,'저장하지 못했어요')){ dirty=false; toast('저장했어요'); location.hash=back.slice(1); } };
+})(); }
 
 /* 설정 · 휴무일 */
 const SET_LABEL={views_min:'조회수 기준',judge_days:'판정까지 일수',price_post:'원고 단가',price_comment:'댓글형 추가',price_blog:'블로그형 단가',mgmt_fee:'주관리비',mgmt_min:'주관리비 최소 건수',tax_rate:'공제율',daily_new:'첫 주 배정량 (days일 동안)',daily_normal:'평소 배정량',rotation:'레퍼런스 로테이션',categories:'카테고리'};
 function viewThSet(){ (async()=>{
   const [s,h]=await Promise.all([sb.from('th_settings').select('*').order('key'),sb.from('th_holidays').select('*').order('day')]);
   if(s.error){ if(await expired(s.error)) return; $('#mb').textContent='불러오지 못했어요: '+s.error.message; return; }
-  let x='<div class="sub">배정·조회수·정산이 이 값을 그대로 써요. '+(ME.boss?'값을 고치면 바로 반영돼요 (지난 정산 기록은 그대로).':'값 고치기는 대표님만 할 수 있어요.')+'</div>';
-  x+='<table style="margin-top:12px"><tr><th>항목</th><th>지금 값</th><th>메모</th><th>고친 사람</th>'+(ME.boss?'<th></th>':'')+'</tr>'+s.data.map(r=>'<tr><td class="nw"><b>'+esc(SET_LABEL[r.key]||r.key)+'</b><div class="sub">'+esc(r.key)+'</div></td><td>'+(ME.boss?'<input data-sv="'+esc(r.key)+'" value="'+esc(JSON.stringify(r.value))+'" style="width:100%;min-width:220px">':'<code>'+esc(JSON.stringify(r.value))+'</code>')+'</td><td class="sub">'+esc(r.note||'')+'</td><td class="sub">'+esc(r.updated_by||'')+'</td>'+(ME.boss?'<td><span class="btn" style="cursor:pointer" data-ss="'+esc(r.key)+'">저장</span></td>':'')+'</tr>').join('')+'</table>';
+  let x='<div class="sub">배정·조회수·정산이 이 값을 그대로 써요. '+(ME.thAdmin?'값을 고치면 바로 반영돼요 (지난 정산 기록은 그대로).':'값 고치기는 대표님과 스레드 담당자만 할 수 있어요.')+'</div>';
+  x+='<table style="margin-top:12px"><tr><th>항목</th><th>지금 값</th><th>메모</th><th>고친 사람</th>'+(ME.thAdmin?'<th></th>':'')+'</tr>'+s.data.map(r=>'<tr><td class="nw"><b>'+esc(SET_LABEL[r.key]||r.key)+'</b><div class="sub">'+esc(r.key)+'</div></td><td>'+(ME.thAdmin?'<input data-sv="'+esc(r.key)+'" value="'+esc(JSON.stringify(r.value))+'" style="width:100%;min-width:220px">':'<code>'+esc(JSON.stringify(r.value))+'</code>')+'</td><td class="sub">'+esc(r.note||'')+'</td><td class="sub">'+esc(r.updated_by||'')+'</td>'+(ME.thAdmin?'<td><span class="btn" style="cursor:pointer" data-ss="'+esc(r.key)+'">저장</span></td>':'')+'</tr>').join('')+'</table>';
   x+='<div class="rule">발행 규칙 (프리랜서 화면에 보여요): 직접 타이핑 · 글 간격 1시간 이상 · 예약발행 금지 · 전날 전환글은 보관 후 새 원고</div>';
   x+='<h3>휴무일 <span class="sub">이날은 Aside가 배정하지 않아요 · 일요일은 휴무 아님</span></h3><div class="quick" style="grid-template-columns:160px 1fr auto"><input type="date" id="hd_day"><input id="hd_note" placeholder="메모 (예: 추석)"><button class="pbtn" id="hd_add">추가</button></div>';
   x+=(h.data||[]).length?'<table style="margin-top:8px"><tr><th>날짜</th><th>메모</th><th></th></tr>'+h.data.map(d=>'<tr><td>'+d.day+'</td><td>'+esc(d.note||'')+'</td><td><span class="btn" style="cursor:pointer" data-hd="'+d.day+'">빼기</span></td></tr>').join('')+'</table>':'<div class="empty">없어요.</div>';
@@ -750,15 +838,15 @@ function viewThLog(){ (async()=>{
 })(); }
 
 /* ---------- 프리랜서 화면 ---------- */
-const FT={'f-today':'오늘 원고','f-all':'내 원고 전체','f-pay':'내 정산','f-docs':'메뉴얼'};
+const FT={'f-today':'오늘 원고','f-all':'내 원고 전체','f-pay':'내 정산','f-docs':'메뉴얼','f-doc':'메뉴얼'};
 let FLV='f-today';
-async function flBoot(){ const {data:f}=await sb.from('th_freelancers').select('*').eq('id',ME.fl).maybeSingle(); ME.flRow=f||{}; ME.name=(f&&f.name)||'프리랜서'; const {data:s}=await sb.from('th_settings').select('*'); SET={}; (s||[]).forEach(x=>SET[x.key]=x.value); const h=location.hash.slice(1); flGo(FT[h]?h:'f-today'); }
-function flSide(){ const it=(p,t)=>'<div class="it top'+(FLV===p?' on':'')+'" data-fp="'+p+'">'+t+'</div>';
+async function flBoot(){ const {data:f}=await sb.from('th_freelancers').select('*').eq('id',ME.fl).maybeSingle(); ME.flRow=f||{}; ME.name=(f&&f.name)||'프리랜서'; const {data:s}=await sb.from('th_settings').select('*'); SET={}; (s||[]).forEach(x=>SET[x.key]=x.value); const h=decodeURIComponent(location.hash.slice(1)); flGo(FT[h.split('/')[0]]?h:'f-today'); }
+function flSide(){ const it=(p,t)=>'<div class="it top'+(FLV===p||(p==='f-docs'&&String(FLV).startsWith('f-doc/'))?' on':'')+'" data-fp="'+p+'">'+t+'</div>';
   $('#side').innerHTML='<div class="logo">스레드 작업</div>'+it('f-today','📝 오늘 원고')+it('f-all','📚 내 원고 전체')+it('f-pay','💰 내 정산')+it('f-docs','📖 메뉴얼')+'<div class="me-box">'+esc(ME.name)+' · '+esc(ME.email)+'<br><button id="chpw">비밀번호 바꾸기</button><button id="logout">로그아웃</button></div>';
   document.querySelectorAll('#side [data-fp]').forEach(e=>e.onclick=()=>{ flGo(e.dataset.fp); $('#side').classList.remove('open'); });
   $('#chpw').onclick=()=>{ $('#np1').value='';$('#np2').value='';$('#npmsg').textContent=''; showOnly('setpw'); };
   $('#logout').onclick=async()=>{ await sb.auth.signOut({scope:'local'}); location.hash=''; location.reload(); }; }
-function flGo(v){ FLV=v; if(location.hash.slice(1)!==v) history.replaceState(null,'','#'+v); flSide(); $('#m').innerHTML='<div class="crumb">스레드 작업 › '+FT[v]+'</div><h2>'+FT[v]+'</h2><div id="mb">불러오는 중…</div>'; ({'f-today':flToday,'f-all':flAll,'f-pay':flPay,'f-docs':flDocs})[v](); $('#m').scrollTop=0; }
+function flGo(v){ FLV=v; const base=String(v).split('/')[0], arg=String(v).slice(base.length+1); if(decodeURIComponent(location.hash.slice(1))!==v) location.hash=v; flSide(); $('#m').innerHTML='<div class="crumb">스레드 작업 › '+FT[base]+'</div><h2>'+FT[base]+'</h2><div id="mb">불러오는 중…</div>'; ({'f-today':flToday,'f-all':flAll,'f-pay':flPay,'f-docs':flDocs,'f-doc':flDoc})[base](arg); $('#m').scrollTop=0; }
 const FL_RULES=()=>'<div class="rule"><b>발행 규칙</b> · 원고는 <b>직접 타이핑</b>해요 (복붙 금지, 말투는 조금 바꿔도 돼요) · 글 간격 <b>1시간 이상</b> · <b>예약발행 금지</b> · 전환글은 올리기 전에 <b>어제 올린 전환글을 보관</b> · 댓글이 필요한 원고는 발행 후 개인 단톡방에 요청 · 조회수 '+(+SET.views_min||300)+' 넘으면 갠톡으로 알려 주세요</div>';
 async function flToday(){
   const {data,error}=await sb.from('th_posts').select('*').in('status',['발행요청','검토요청','보관(재업로드대기)']).order('created_time',{ascending:true});
@@ -767,7 +855,7 @@ async function flToday(){
   if(!L.length){ $('#mb').innerHTML=h+'<div class="empty">지금 올릴 원고가 없어요. 아침에 배정되면 여기 나와요.</div>'; return; }
   h+=L.map(p=>'<div class="box" style="margin-top:14px" id="fp_'+p.id+'"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+thTitle(p.title)+'</b><span class="tag '+(p.status==='보관(재업로드대기)'?'t2':p.mode==='일상컨텐츠'?'t0':'t1')+'">'+(p.status==='보관(재업로드대기)'?'재업로드 요청':p.mode==='일상컨텐츠'?'일상글':'전환글')+'</span></div>'
     +(p.status==='보관(재업로드대기)'?'<div class="rule" style="border-color:#f5c26b;background:#fff8e8">조회수가 기준보다 낮았어요. 이전 글을 보관하고 다시 올린 뒤 새 주소를 넣어 주세요.'+(p.url?' (이전 주소: <a href="'+esc(p.url)+'" target="_blank" rel="noopener">열기</a>)':'')+'</div>':'')
-    +bodyHtml(p.body)+imgsHtml(p.images)+(p.comment_script?'<div class="sub" style="margin-top:8px">댓글 대본</div>'+bodyHtml(p.comment_script):'')
+    +richBody(String(p.body||'').replace(/^\s*원본:[^\n]*\n?/,''),p.images)+(p.comment_script?'<div class="sub" style="margin-top:8px">댓글 대본</div>'+bodyHtml(p.comment_script):'')
     +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><input placeholder="올린 스레드 글 주소 (https://www.threads.com/@아이디/post/…)" data-furl="'+p.id+'" style="flex:1;min-width:240px"><button class="pbtn" data-fpub="'+p.id+'">발행했어요</button></div></div>').join('');
   $('#mb').innerHTML=h; fillImgs($('#mb'));
   document.querySelectorAll('[data-fpub]').forEach(b=>b.onclick=async()=>{ const id=b.dataset.fpub, url=document.querySelector('[data-furl="'+id+'"]').value.trim(); if(!url){ toast('올린 글 주소를 넣어 주세요'); return; } if(!TH_URL_RE.test(url)){ toast('스레드 글 주소가 아니에요. 글의 "링크 복사"로 받은 주소를 넣어 주세요'); return; } b.disabled=true; const {error}=await sb.rpc('th_publish',{p_post:id,p_url:url}); b.disabled=false; if(error){ if(await expired(error)) return; toast(error.message); return; } toast('발행 완료로 바꿨어요. 수고하셨어요!'); flToday(); });
@@ -781,18 +869,25 @@ async function flAll(){
 async function flPay(){
   const RR=RULE(); const [a,b]=await Promise.all([sb.from('th_payouts').select('*').order('pay_date',{ascending:false}),sb.from('th_posts').select('id,form,status,settled,payout_id').eq('status','정산전')]);
   if(a.error){ if(await expired(a.error)) return; $('#mb').textContent='불러오지 못했어요: '+a.error.message; return; }
-  const pre=(b.data||[]).filter(p=>!p.settled&&!p.payout_id); const n=pre.length, c=pre.filter(p=>p.form==='댓글형').length, bl=pre.filter(p=>p.form==='블로그형').length, fee=n>=RR.feeMin?RR.fee:0, g=n*RR.post+c*RR.cmt+bl*RR.blog+fee, t=Math.round(g*RR.tax);
+  const pre=(b.data||[]).filter(p=>!p.settled&&!p.payout_id); const n=pre.length, c=pre.filter(p=>p.form==='댓글형').length, bl=pre.filter(p=>p.form==='블로그형').length, fee=n>=RR.feeMin?RR.fee:0, g=(n-bl)*RR.post+c*RR.cmt+bl*RR.blog+fee, t=Math.round(g*RR.tax);
   let h='<div class="cards"><div class="card"><div class="k">이번 주 정산 대상</div><div class="v">'+n+'건</div><div class="s">댓글형 '+c+' · 블로그형 '+bl+'</div></div><div class="card"><div class="k">주관리비</div><div class="v">'+(fee?fee.toLocaleString()+'원':'-')+'</div><div class="s">'+RR.feeMin+'건 이상이면 '+RR.fee.toLocaleString()+'원</div></div><div class="card"><div class="k">예상 지급액</div><div class="v">'+(g-t).toLocaleString()+'원</div><div class="s">공제 전 '+g.toLocaleString()+' · '+(RR.tax*100).toFixed(1)+'% '+t.toLocaleString()+'</div></div></div>';
   h+='<div class="sub" style="margin-top:6px">매주 월요일 정산, 3.3% 원천징수 후 계좌이체. 금액은 확정 전 예상이에요.</div>';
   h+='<h3>지난 정산</h3>'+((a.data||[]).length?'<table><tr><th>정산일</th><th>원고</th><th>댓글형</th><th>관리비</th><th>지급액</th><th>상태</th></tr>'+a.data.map(p=>'<tr><td>'+(p.pay_date||'-')+'</td><td>'+(p.posts??'')+'</td><td>'+(p.comment_cnt??'')+'</td><td>'+(p.mgmt_fee?p.mgmt_fee.toLocaleString():'-')+'</td><td><b>'+(p.net??0).toLocaleString()+'</b></td><td>'+esc(p.pay_status||'')+'</td></tr>').join('')+'</table>':'<div class="empty">아직 없어요.</div>');
   $('#mb').innerHTML=h;
 }
 async function flDocs(){
-  const {data,error}=await sb.from('th_docs').select('*').eq('audience','freelancer').order('sort');
+  const {data,error}=await sb.from('th_docs').select('slug,title,updated_at').eq('audience','freelancer').order('sort');
   if(error){ if(await expired(error)) return; $('#mb').textContent='불러오지 못했어요: '+error.message; return; }
   const L=data||[]; if(!L.length){ $('#mb').innerHTML='<div class="empty">아직 메뉴얼이 없어요.</div>'; return; }
-  $('#mb').innerHTML=L.map(d=>'<details class="box" style="margin-top:10px"><summary style="cursor:pointer"><b>'+esc(d.title)+'</b></summary>'+bodyHtml(d.body)+imgsHtml(d.images)+'</details>').join('');
-  document.querySelectorAll('#mb details').forEach(dt=>dt.addEventListener('toggle',()=>{ if(dt.open) fillImgs(dt); }));
+  $('#mb').innerHTML='<div class="sub">제목을 누르면 열려요.</div>'+L.map(d=>'<a href="#f-doc/'+encodeURIComponent(d.slug)+'" class="box" style="display:block;margin-top:10px;text-decoration:none;color:#111"><b>📄 '+esc(d.title)+'</b> <span class="sub" style="float:right">'+nDt(d.updated_at)+'</span></a>').join('');
+}
+async function flDoc(slug){
+  const {data:d,error}=await sb.from('th_docs').select('*').eq('slug',decodeURIComponent(slug||'')).eq('audience','freelancer').maybeSingle();
+  if(error){ if(await expired(error)) return; $('#mb').textContent='불러오지 못했어요: '+error.message; return; }
+  if(!d){ $('#mb').innerHTML='<div class="empty">없는 메뉴얼이에요.</div>'; return; }
+  $('#m').querySelector('h2').textContent=d.title; $('#m').querySelector('.crumb').innerHTML='스레드 작업 › <a href="#f-docs" style="color:inherit">메뉴얼</a> › '+esc(d.title);
+  $('#mb').innerHTML='<div style="margin:4px 0 14px"><a class="btn" href="#f-docs" style="text-decoration:none;color:#333">← 메뉴얼</a></div><div style="max-width:980px">'+richBody(d.body,d.images)+'</div>';
+  fillImgs($('#mb'));
 }
 
 /* ---------- 일 목록 (진행 중 / 멈춤 / 완료) ---------- */
