@@ -21,7 +21,7 @@ self.addEventListener('notificationclick', e => {
       try {
         const r = await fetch(SB + '/rest/v1/rpc/notice_ack_token', { method: 'POST', headers: { apikey: AK, Authorization: 'Bearer ' + AK, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_id: data.ack.id, p_name: data.ack.name, p_token: data.ack.token }) });
         if (!r.ok) throw new Error(await r.text());
-        await self.registration.showNotification('확인 처리됐어요', { body: n.body + ' · 보낸 사람에게 알려졌어요', icon: '/icon-512.png', tag: 'acked-' + data.ack.id });
+        // 성공하면 조용히 끝 (누른 사람에게는 따로 알림을 띄우지 않음)
       } catch (err) {
         await self.registration.showNotification('확인 처리에 실패했어요', { body: '사이트에서 [확인]을 눌러 주세요', icon: '/icon-512.png', tag: 'ackfail-' + data.ack.id, data: { url } });
       }
