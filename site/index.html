@@ -144,7 +144,7 @@ async function boot(){
   try{ const {data:b}=await sb.rpc('is_boss'); ME.boss=!!b; }catch(e){ ME.boss=false; } try{ const {data:pp}=await sb.rpc('has_perm',{p:'th_settle'}); ME.thSettle=!!pp||ME.boss; }catch(e){ ME.thSettle=ME.boss; }
   showOnly('app');
   VIEW=(location.hash||'#home').slice(1)||'home'; if(VIEW.includes('=')) VIEW='home';
-  renderSide(); go(VIEW); if(ME.boss) noticePoll();
+  renderSide(); go(VIEW); noticePoll(); pushRefresh();
 }
 $('#lbtn').onclick=async()=>{ $('#lmsg').textContent=''; const {error}=await sb.auth.signInWithPassword({email:$('#lemail').value.trim(),password:$('#lpw').value}); if(error){$('#lmsg').textContent='메일 주소나 비밀번호가 맞지 않아요.';return;} boot(); };
 $('#lpw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#lbtn').click();});
@@ -162,14 +162,15 @@ function isOpen(s){ try{ const v=localStorage.getItem('sys_'+s); return v===null
 function renderSide(){
   const it=(p,t,top)=>'<div class="it'+(top?' top':'')+(VIEW===p?' on':'')+'" data-p="'+p+'">'+t+'</div>';
   const sys=(s,t,inner)=>'<div class="grp sys'+(isOpen(s)?'':' closed')+'" data-s="'+s+'"><span class="ar">▾</span> '+t+'</div><div class="sysbox'+(isOpen(s)?'':' closed')+'">'+inner+'</div>';
-  $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+(ME.boss?it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1):'')
+  $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1)
    +'<div class="g1">채널 시스템</div>'
    +sys('pc','파워컨텐츠 시스템',it('pc-pool','키워드별 R 후보 (AI 추천)')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-kw','1. 키워드')+it('pc-pub','2. 발행')+it('pc-rank','3. 노출체크')+it('pc-perf','4. 성과')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-edit','수정 기록')+it('pc-acc','계정·외주')+it('pc-set','설정'))
    +sys('th','스레드 시스템',it('th-today','오늘 할 일')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-ref','1. 레퍼런스')+it('th-post','2. 원고 배정·발행')+it('th-view','3. 조회수 체크')+it('th-pay','4. 주정산')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-fl','프리랜서')+it('th-tpl','템플릿·문서')+it('th-set','설정')+it('th-log','변경 기록'))
    +'<div class="grp" style="color:#5d667a">+ 채널 추가 (메타 등)</div>'
-   +'<div class="me-box">'+esc(ME.name)+' · '+esc(ME.email)+'<br><button id="chpw">비밀번호 바꾸기</button><button id="logout">로그아웃</button></div>';
+   +'<div class="me-box">'+esc(ME.name)+' · '+esc(ME.email)+'<br><button id="pushbtn">알림 켜기</button><button id="chpw">비밀번호 바꾸기</button><button id="logout">로그아웃</button></div>';
   document.querySelectorAll('#side .it[data-p]').forEach(e=>e.onclick=()=>{go(e.dataset.p);$('#side').classList.remove('open');});
   document.querySelectorAll('#side .grp.sys').forEach(g=>g.onclick=()=>{ const s=g.dataset.s; try{localStorage.setItem('sys_'+s,isOpen(s)?'0':'1');}catch(e){} renderSide(); });
+  $('#pushbtn').onclick=()=>enablePush(true); pushLabel();
   $('#chpw').onclick=()=>{ $('#np1').value='';$('#np2').value='';$('#npmsg').textContent=''; showOnly('setpw'); };
   $('#logout').onclick=async()=>{ await sb.auth.signOut({scope:'local'}); location.hash=''; location.reload(); };
 }
@@ -390,49 +391,59 @@ const nDt=t=>{ if(!t) return ''; const d=new Date(new Date(t).getTime()+9*3600e3
 const nEnd=n=>n.kind==='할 일'?(n.done_at?nDt(n.done_at):'<span class="sub">-</span>'):(n.confirmed_at?nDt(n.confirmed_at)+'<div class="sub">확인</div>':'<span class="sub">-</span>');
 const nRel=n=>n.related?(n.related_url&&n.related_url.startsWith('#')?'<a href="'+esc(n.related_url)+'" style="color:#03a04c">'+esc(n.related)+'</a>':esc(n.related)):'';
 async function noticeCount(first){
-  if(!ME||!ME.boss) return;
-  const {data,error}=await sb.from('notices').select('id,kind,title,to_name,status,done_at,confirmed_at,boss_seen_at').is('boss_seen_at',null);
+  if(!ME||ME.fl) return;
+  const {data,error}=await sb.from('notices').select('id,kind,title,to_name,from_name,status,done_at,confirmed_at,boss_seen_at').eq('from_name',ME.name).is('boss_seen_at',null);
   if(error) return;
   const L=(data||[]).filter(isNew); const before=NEWN; NEWN=L.length;
   if(!first && NEWN>before){ const n=L[0]; toast(n.to_name+'님이 "'+n.title+'"을 '+(n.status==='완료'?'완료했어요':'확인했어요')); }
   if(NEWN!==before) renderSide();
 }
+const VAPID_PUB='BHTEw-T28-Ng5Zc2H7QFvgspJOKPSL7g8UI_kHragiTxzystZRrFYw8Pt9Ix9GX9DrfcUAbeDpwgYKV42j5eVNs';
+function b64u(s){ const p='='.repeat((4-s.length%4)%4); return Uint8Array.from(atob((s+p).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)); }
+async function pushLabel(){ const b=$('#pushbtn'); if(!b) return; if(!('Notification' in window)||!('serviceWorker' in navigator)){ b.style.display='none'; return; } let n=0; try{ const r=await sb.rpc('push_mine'); n=r.data||0; }catch(e){} const on=Notification.permission==='granted'&&n>0; b.textContent=on?'알림 켜짐 (눌러서 시험)':'알림 켜기'; b.style.background=on?'#e3f6ea':'#ffe9a8'; b.style.color='#1d2433'; }
+async function enablePush(manual){ try{ if(!('serviceWorker' in navigator)||!('PushManager' in window)){ toast('이 브라우저는 알림을 지원하지 않아요'); return; }
+  if(Notification.permission==='denied'){ toast('알림이 막혀 있어요. 주소창 왼쪽 아이콘 → 알림 → 허용으로 바꿔 주세요'); return; }
+  if(Notification.permission!=='granted'){ if(manual) toast('알림 창이 뜨면 [Notify me]를 눌러 주세요'); const p=await Notification.requestPermission(); if(p!=='granted'){ toast('알림을 허용하지 않았어요'); return; } }
+  const reg=await navigator.serviceWorker.register('/sw.js'); await navigator.serviceWorker.ready; let s=await reg.pushManager.getSubscription(); if(!s) s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUB)});
+  const {error}=await sb.rpc('push_save',{p_sub:s.toJSON(),p_ua:navigator.userAgent.slice(0,120)}); if(error){ toast('알림 등록 실패: '+error.message); return; }
+  if(manual){ reg.showNotification('알림이 켜졌어요',{body:'앞으로 주고받는 일이 이렇게 떠요. 사이트를 닫아 둬도 와요.',icon:'/icon-512.png',tag:'push-on'}); toast('알림이 켜졌어요'); }
+  pushLabel(); }catch(e){ toast('알림을 켜지 못했어요: '+e.message); } }
+async function pushRefresh(){ try{ if('Notification' in window && Notification.permission==='granted') await enablePush(false); }catch(e){} }
 function noticePoll(){ noticeCount(true); setInterval(()=>noticeCount(false),60000); }
 async function viewNotice(){
-  if(!ME.boss){ $('#mb').innerHTML='<div class="empty">대표님 계정에서만 보여요.</div>'; return; }
   const {data,error}=await sb.from('notices').select('*').order('created_at',{ascending:false}).limit(300);
   if(error){ if(await expired(error)) return; $('#mb').textContent='불러오지 못했어요: '+error.message; return; }
-  const all=data||[]; const unseen=new Set(all.filter(isNew).map(n=>n.id));
+  const all=data||[]; const unseen=new Set(all.filter(n=>n.from_name===ME.name&&isNew(n)).map(n=>n.id));
   const open=all.filter(nOpen), fin=all.filter(n=>!nOpen(n));
   const L=NTAB==='open'?open:NTAB==='fin'?fin:all;
   const over=open.filter(n=>n.kind==='할 일'&&n.due_date&&n.due_date<new Date(Date.now()+9*3600e3).toISOString().slice(0,10)).length;
-  let h='<div class="rule"><b>보내는 법</b>: 어사이드 채팅에 <b>"전달: 철님 요가복 1~3위 후기 좀 봐줘 금요일까지"</b>처럼 대충 적으세요. AI가 할 일/의견으로 나누고 존댓말로 정리해서 보여 드려요. "보내"라고 하면 여기와 직원 "내 업무"에 올라가요.</div>'
-   +'<div class="cards" style="margin-top:12px"><div class="card"><div class="k">아직 안 끝난 것</div><div class="v">'+open.length+'건</div></div><div class="card'+(over?' red':'')+'"><div class="k">기한 지난 할 일</div><div class="v">'+over+'건</div></div><div class="card"><div class="k">새 소식 (완료·확인)</div><div class="v">'+unseen.size+'건</div></div><div class="card"><div class="k">끝난 것</div><div class="v">'+fin.length+'건</div></div></div>'
-   +(unseen.size?'<h3 style="margin-top:16px">새 소식 <span class="sub">직원이 완료·확인한 것 · 이 화면을 나가면 아래 목록으로 들어가요</span></h3><table>'+all.filter(n=>unseen.has(n.id)).map(n=>'<tr style="background:#f3fbf6"><td class="nw">'+ntag(n)+'</td><td><b>'+esc(n.title)+'</b></td><td class="nw">'+esc(n.to_name)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'<span class="sub">한마디 없음</span>')+'</td></tr>').join('')+'</table>':'')
+  let h='<div class="rule"><b>보내는 법</b>: 각자 어사이드 채팅에 <b>"다원님한테 요가복 1~3위 후기 봐 달라고 전달해 줘. 금요일까지"</b>처럼 말하세요. AI가 정리해서 보여 주고, "보내"라고 하면 받는 사람 화면에 <b>알림</b>이 바로 떠요. 받은 사람이 확인·완료하면 보낸 사람에게도 알림이 가요. (알림은 왼쪽 아래 [알림 켜기]를 한 번 눌러야 와요)</div>'
+   +'<div class="cards" style="margin-top:12px"><div class="card"><div class="k">아직 안 끝난 것</div><div class="v">'+open.length+'건</div></div><div class="card'+(over?' red':'')+'"><div class="k">기한 지난 할 일</div><div class="v">'+over+'건</div></div><div class="card"><div class="k">내가 보낸 일 새 소식</div><div class="v">'+unseen.size+'건</div></div><div class="card"><div class="k">끝난 것</div><div class="v">'+fin.length+'건</div></div></div>'
+   +(unseen.size?'<h3 style="margin-top:16px">새 소식 <span class="sub">직원이 완료·확인한 것 · 이 화면을 나가면 아래 목록으로 들어가요</span></h3><table>'+all.filter(n=>unseen.has(n.id)).map(n=>'<tr style="background:#f3fbf6"><td class="nw">'+ntag(n)+'</td><td><b>'+esc(n.title)+'</b></td><td class="nw">'+esc(n.from_name||'대표님')+' → '+esc(n.to_name)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'<span class="sub">한마디 없음</span>')+'</td></tr>').join('')+'</table>':'')
    +'<div class="rtabs" style="margin-top:14px">'+[['open','아직 안 끝난 것 '+open.length],['fin','끝난 것 '+fin.length],['all','전체 '+all.length]].map(([k,t])=>'<span class="'+(NTAB===k?'on':'')+'" data-nt="'+k+'">'+t+'</span>').join('')+'</div>';
-  h+=L.length?'<table><tr><th>종류</th><th>내용</th><th>받는 사람</th><th>기한</th><th>상태</th><th>직원 한마디</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'+L.map(n=>'<tr'+(unseen.has(n.id)?' style="background:#f3fbf6"':'')+'><td class="nw">'+ntag(n)+'</td><td>'+(unseen.has(n.id)?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-right:6px"></span>':'')+'<b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.done_when?'<div class="sub">끝난 기준: '+esc(n.done_when)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+'</td><td class="nw">'+esc(n.to_name)+'</td><td class="nw">'+nDue(n)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'')+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw"><span class="btn" data-ndel="'+n.id+'" style="cursor:pointer">지우기</span></td></tr>').join('')+'</table>':'<div class="empty">'+(NTAB==='open'?'아직 안 끝난 전달사항이 없어요.':'없어요.')+'</div>';
+  h+=L.length?'<table><tr><th>종류</th><th>내용</th><th>보낸 → 받는</th><th>기한</th><th>상태</th><th>받은 사람 한마디</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'+L.map(n=>'<tr'+(unseen.has(n.id)?' style="background:#f3fbf6"':'')+'><td class="nw">'+ntag(n)+'</td><td>'+(unseen.has(n.id)?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-right:6px"></span>':'')+'<b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.done_when?'<div class="sub">끝난 기준: '+esc(n.done_when)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+'</td><td class="nw">'+esc(n.from_name||'대표님')+' → '+esc(n.to_name)+'</td><td class="nw">'+nDue(n)+'</td><td class="nw">'+nst(n)+'</td><td>'+(n.staff_note?'"'+esc(n.staff_note)+'"':'')+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw">'+(ME.boss?'<span class="btn" data-ndel="'+n.id+'" style="cursor:pointer">지우기</span>':'')+'</td></tr>').join('')+'</table>':'<div class="empty">'+(NTAB==='open'?'아직 안 끝난 전달사항이 없어요.':'없어요.')+'</div>';
   $('#mb').innerHTML=h;
   document.querySelectorAll('#mb [data-nt]').forEach(e=>e.onclick=()=>{NTAB=e.dataset.nt;viewNotice();});
   document.querySelectorAll('#mb [data-ndel]').forEach(e=>e.onclick=async()=>{ if(!confirm('이 전달사항을 지울까요? 직원 화면에서도 사라져요.')) return; const {error}=await sb.from('notices').delete().eq('id',e.dataset.ndel); if(error){ toast('지우지 못했어요: '+error.message); return; } toast('지웠어요'); viewNotice(); });
-  if(unseen.size){ await sb.from('notices').update({boss_seen_at:new Date().toISOString()}).in('id',[...unseen]); NEWN=0; renderSide(); }
+  if(unseen.size){ await sb.rpc('notice_seen',{p_ids:[...unseen]}); NEWN=0; renderSide(); }
 }
 /* 내 업무 맨 위: 받은 전달사항 */
 async function myNotices(who){
   const box=$('#mynotice'); if(!box||who==='전체') return;
-  const {data,error}=await sb.from('notices').select('*').eq('to_name',who).order('created_at',{ascending:false}).limit(100);
-  if(error||!data) return;
+  const {data:d0,error}=await sb.from('notices').select('*').or('to_name.eq.'+who+',to_name.eq.전체').order('created_at',{ascending:false}).limit(100);
+  if(error||!d0) return; const data=d0.filter(n=>n.from_name!==who);
   const since=new Date(Date.now()-3*864e5).toISOString();
   const L=data.filter(n=>nOpen(n)||(n.done_at||n.confirmed_at||'')>since);
   if(!L.length){ box.innerHTML=''; return; }
   const mineView=(who===ME.name);
-  let h='<div class="box" style="margin-top:8px;border-left:4px solid #03c75a"><h4 style="margin:0 0 6px">대표님 전달사항 <span class="sub">'+(mineView?'읽으면 [확인] → 할 일은 끝나면 [완료] · 끝난 것은 3일 뒤 여기서 빠지고 기록은 남아요':(who.endsWith('님')?who:who+'님')+'에게 보낸 것 · 끝난 것은 3일 뒤 빠져요')+'</span></h4><table><tr><th>종류</th><th>내용</th><th>기한</th><th>끝난 기준</th><th>상태</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'
-   +L.map(n=>'<tr><td class="nw">'+ntag(n)+'</td><td><b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+(n.staff_note?'<div class="sub">내 한마디: "'+esc(n.staff_note)+'"</div>':'')+'</td><td class="nw">'+nDue(n)+'</td><td>'+(n.done_when?esc(n.done_when):'<span class="sub">-</span>')+'</td><td class="nw">'+nst(n)+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw" data-ncell="'+n.id+'">'
+  let h='<div class="box" style="margin-top:8px;border-left:4px solid #03c75a"><h4 style="margin:0 0 6px">받은 일 <span class="sub">'+(mineView?'읽으면 [확인] → 할 일은 끝나면 [완료] · 끝난 것은 3일 뒤 여기서 빠지고 기록은 남아요':(who.endsWith('님')?who:who+'님')+'에게 보낸 것 · 끝난 것은 3일 뒤 빠져요')+'</span></h4><table><tr><th>종류</th><th>내용</th><th>기한</th><th>끝난 기준</th><th>상태</th><th>보낸 날</th><th>완료한 날</th><th></th></tr>'
+   +L.map(n=>'<tr><td class="nw">'+ntag(n)+'</td><td><span class="sub">'+esc(n.from_name||'대표님')+' 보냄 · </span><b>'+esc(n.title)+'</b>'+(n.body?'<div class="sub">'+esc(n.body)+'</div>':'')+(n.related?'<div class="sub">'+nRel(n)+'</div>':'')+(n.staff_note?'<div class="sub">내 한마디: "'+esc(n.staff_note)+'"</div>':'')+'</td><td class="nw">'+nDue(n)+'</td><td>'+(n.done_when?esc(n.done_when):'<span class="sub">-</span>')+'</td><td class="nw">'+nst(n)+'</td><td class="nw sub">'+nDt(n.created_at)+'</td><td class="nw">'+nEnd(n)+'</td><td class="nw" data-ncell="'+n.id+'">'
      +(mineView?((n.status==='보냄'?'<span class="pbtn gray" data-nack="'+n.id+'" data-act="확인" style="margin-right:10px">확인</span>':'')+(n.kind==='할 일'&&n.status!=='완료'?'<span class="pbtn" data-nack="'+n.id+'" data-act="완료">완료</span>':'')):'')+'</td></tr>').join('')+'</table></div>';
   box.innerHTML=h;
   box.querySelectorAll('[data-nack]').forEach(e=>e.onclick=()=>{ const id=e.dataset.nack, act=e.dataset.act; const cell=box.querySelector('[data-ncell="'+id+'"]');
     cell.innerHTML='<input placeholder="한 줄 남기기 (안 써도 돼요)" style="width:180px" id="nn'+id+'"> <span class="pbtn" id="ns'+id+'">'+act+' 보내기</span> <span class="sub" id="nc'+id+'" style="cursor:pointer">취소</span>';
     $('#nc'+id).onclick=()=>myNotices(who);
-    $('#ns'+id).onclick=async()=>{ const {error}=await sb.rpc('notice_ack',{p_id:+id,p_action:act,p_note:$('#nn'+id).value.trim()}); if(error){ toast('보내지 못했어요: '+error.message); return; } toast(act==='완료'?'완료했어요. 대표님께 알려져요':'확인했어요'); myNotices(who); }; });
+    $('#ns'+id).onclick=async()=>{ const {error}=await sb.rpc('notice_ack',{p_id:+id,p_action:act,p_note:$('#nn'+id).value.trim()}); if(error){ toast('보내지 못했어요: '+error.message); return; } toast(act==='완료'?'완료했어요. 보낸 사람에게 알림이 가요':'확인했어요. 보낸 사람에게 알림이 가요'); myNotices(who); }; });
 }
 
 /* ---------- 스레드 시스템 (사이트가 원본 · 노션은 병행 기간에만 보기) ---------- */
