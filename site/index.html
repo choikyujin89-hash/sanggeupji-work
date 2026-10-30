@@ -157,12 +157,12 @@ $('#npbtn').onclick=async()=>{ const a=$('#np1').value,b=$('#np2').value; if(a.l
   const {error}=await sb.auth.updateUser({password:a}); if(error){$('#npmsg').textContent='저장하지 못했어요: '+error.message;return;} NEED_PW=false; toast('비밀번호를 정했어요'); boot(); };
 
 /* ---------- 메뉴 (목업과 같은 구조) ---------- */
-const TITLES={home:'전체 현황',notice:'전달사항',r:'R(제품) 목록',mywork:'내 업무','pc-pool':'파워컨텐츠 › 키워드별 R 후보 (AI 추천)','pc-kw':'파워컨텐츠 › 1. 키워드','pc-pub':'파워컨텐츠 › 2. 발행','pc-rank':'파워컨텐츠 › 3. 노출체크','pc-perf':'파워컨텐츠 › 4. 성과','pc-edit':'파워컨텐츠 › 수정 기록','pc-acc':'파워컨텐츠 › 계정·외주','pc-set':'파워컨텐츠 › 설정',th:'스레드 › 오늘 할 일','th-today':'스레드 › 오늘 할 일','th-ref':'스레드 › 1. 레퍼런스','th-post':'스레드 › 2. 원고 배정·발행','th-view':'스레드 › 3. 조회수 체크','th-pay':'스레드 › 4. 주정산','th-fl':'스레드 › 프리랜서','th-set':'스레드 › 설정','th-tpl':'스레드 › 템플릿·문서','th-doc':'스레드 › 템플릿·문서','th-log':'스레드 › 변경 기록'};
+const TITLES={home:'전체 현황',notice:'전달사항',lec:'엠타 강의 자료',r:'R(제품) 목록',mywork:'내 업무','pc-pool':'파워컨텐츠 › 키워드별 R 후보 (AI 추천)','pc-kw':'파워컨텐츠 › 1. 키워드','pc-pub':'파워컨텐츠 › 2. 발행','pc-rank':'파워컨텐츠 › 3. 노출체크','pc-perf':'파워컨텐츠 › 4. 성과','pc-edit':'파워컨텐츠 › 수정 기록','pc-acc':'파워컨텐츠 › 계정·외주','pc-set':'파워컨텐츠 › 설정',th:'스레드 › 오늘 할 일','th-today':'스레드 › 오늘 할 일','th-ref':'스레드 › 1. 레퍼런스','th-post':'스레드 › 2. 원고 배정·발행','th-view':'스레드 › 3. 조회수 체크','th-pay':'스레드 › 4. 주정산','th-fl':'스레드 › 프리랜서','th-set':'스레드 › 설정','th-tpl':'스레드 › 템플릿·문서','th-doc':'스레드 › 템플릿·문서','th-log':'스레드 › 변경 기록'};
 function isOpen(s){ try{ const v=localStorage.getItem('sys_'+s); return v===null?true:v==='1'; }catch(e){ return true; } }
 function renderSide(){
   const it=(p,t,top)=>'<div class="it'+(top?' top':'')+(VIEW===p||(p==='th-tpl'&&String(VIEW).startsWith('th-doc'))?' on':'')+'" data-p="'+p+'">'+t+'</div>';
   const sys=(s,t,inner)=>'<div class="grp sys'+(isOpen(s)?'':' closed')+'" data-s="'+s+'"><span class="ar">▾</span> '+t+'</div><div class="sysbox'+(isOpen(s)?'':' closed')+'">'+inner+'</div>';
-  $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1)
+  $('#side').innerHTML='<div class="logo">회사 업무 사이트</div>'+it('home','🏠 전체 현황',1)+it('r','📦 R(제품) 목록',1)+it('mywork','👤 내 업무',1)+it('notice','📋 전달사항'+(NEWN?' <span style="background:#e5484d;color:#fff;border-radius:9px;padding:0 7px;font-size:11px;margin-left:4px">'+NEWN+'</span>':''),1)+it('lec','📚 엠타 강의 자료',1)
    +'<div class="g1">채널 시스템</div>'
    +sys('pc','파워컨텐츠 시스템',it('pc-pool','키워드별 R 후보 (AI 추천)')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-kw','1. 키워드')+it('pc-pub','2. 발행')+it('pc-rank','3. 노출체크')+it('pc-perf','4. 성과')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('pc-edit','수정 기록')+it('pc-acc','계정·외주')+it('pc-set','설정'))
    +sys('th','스레드 시스템',it('th-today','오늘 할 일')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-ref','1. 레퍼런스')+it('th-post','2. 원고 배정·발행')+it('th-view','3. 조회수 체크')+it('th-pay','4. 주정산')+'<div style="margin:6px 18px 6px 26px;border-top:1px solid #3a4152"></div>'+it('th-fl','프리랜서')+it('th-tpl','템플릿·문서')+it('th-set','설정')+it('th-log','변경 기록'))
@@ -177,7 +177,7 @@ function renderSide(){
 $('#mbtn').onclick=()=>$('#side').classList.toggle('open');
 function go(v){ if(ME&&ME.fl){ flGo(FT[String(v).split('/')[0]]?v:'f-today'); return; } VIEW=v; if(location.hash.slice(1)!==v) location.hash=v; renderSide(); const base=String(v).split('/')[0], arg=String(v).slice(base.length+1); const t=TITLES[base]||''; $('#m').innerHTML='<div class="crumb">회사 업무 사이트 › '+t+'</div><h2>'+t+'</h2><div id="mb">불러오는 중…</div>'; (VIEWS[base]||blank)(arg); $('#m').scrollTop=0; }
 function blank(){ $('#mb').innerHTML='<div class="sub">아직 만들지 않은 화면이에요</div><div class="ph">화면 설계(목업)는 있고, 실제 데이터가 연결되면 채워요.</div>'; }
-const VIEWS={th:viewThToday,'th-today':viewThToday,'th-ref':viewThRef,'th-post':viewThPost,'th-view':viewThView,'th-pay':viewThPay,'th-fl':viewThFl,'th-set':viewThSet,'th-tpl':viewThTpl,'th-doc':viewThDoc,'th-log':viewThLog,home:viewHome,notice:viewNotice,r:viewR,mywork:viewMy,'pc-pool':viewPool};
+const VIEWS={th:viewThToday,'th-today':viewThToday,'th-ref':viewThRef,'th-post':viewThPost,'th-view':viewThView,'th-pay':viewThPay,'th-fl':viewThFl,'th-set':viewThSet,'th-tpl':viewThTpl,'th-doc':viewThDoc,'th-log':viewThLog,home:viewHome,notice:viewNotice,r:viewR,mywork:viewMy,'pc-pool':viewPool,lec:viewLec};
 window.addEventListener('hashchange',()=>{const v=decodeURIComponent(location.hash.slice(1)); const base=v.split('/')[0]; if(ME&&ME.fl){ if(FT[base]&&v!==FLV) flGo(v); return; } if(ME&&v&&v!==VIEW&&TITLES[base])go(v);});
 
 /* ---------- 데이터 ---------- */
@@ -378,6 +378,49 @@ function rForm(r){
     const {error}=await q; if(error){ if(await expired(error)) return; toast('저장하지 못했어요: '+error.message);return;}
     $('#modal').classList.add('hidden'); toast('저장했어요'); RTAB=row.status; viewR();
   };
+}
+
+
+/* ---------- 엠타 강의 자료 (회사 저장소 lectures, 직원만) ---------- */
+let LQ='', LC='', LONLY=true, LLIST=null;
+const LCOURSES=['엠타18기','엠타19기','엠타22기','엠타중급반1기','걸타트업1기'];
+const lecMain=s=>/^1_정리본|^2_전체합본/.test(s||'')||(s&&!/작업|검토/.test(s)&&!/^3_/.test(s));
+const lecHi=(t,q)=>{ const e=esc(t); if(!q) return e; const qe=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\/* ---------- 전달사항 (대표님 → 직원) ---------- */'); return e.replace(new RegExp(qe,'g'),m=>'<mark style="background:#ffe58a">'+m+'</mark>'); };
+function lecMd(src,q){ const L=src.replace(/\r/g,'').split('\n'); let o='', tb=null, ul=false; const inl=s=>lecHi(s,q).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code style="background:#f1f3f7;padding:0 3px;border-radius:3px">$1</code>');
+  const endT=()=>{ if(tb){ o+='<table style="margin:8px 0">'+tb.map((r,i)=>'<tr>'+r.map(c=>i===0?'<th>'+inl(c)+'</th>':'<td>'+inl(c)+'</td>').join('')+'</tr>').join('')+'</table>'; tb=null; } }; const endU=()=>{ if(ul){ o+='</ul>'; ul=false; } };
+  for(const l of L){ if(/^\s*\|.*\|\s*$/.test(l)){ endU(); const cells=l.trim().slice(1,-1).split('|').map(c=>c.trim()); if(cells.every(c=>/^:?-{2,}:?$/.test(c))) continue; (tb=tb||[]).push(cells); continue; } endT();
+    let m; if((m=l.match(/^(#{1,6})\s+(.*)/))){ endU(); const n=Math.min(m[1].length+1,5); o+='<h'+n+' style="margin:14px 0 6px">'+inl(m[2])+'</h'+n+'>'; }
+    else if((m=l.match(/^\s*[-*]\s+(.*)/))){ if(!ul){ o+='<ul style="margin:4px 0 4px 18px;padding:0">'; ul=true; } o+='<li>'+inl(m[1])+'</li>'; }
+    else if(/^>\s?/.test(l)){ endU(); o+='<div style="border-left:3px solid #d9dee8;padding:2px 10px;color:#4a5568">'+inl(l.replace(/^>\s?/,''))+'</div>'; }
+    else if(!l.trim()){ endU(); o+='<div style="height:6px"></div>'; } else { endU(); o+='<div>'+inl(l)+'</div>'; } }
+  endT(); endU(); return o; }
+async function viewLec(arg){
+  if(arg){ let p=arg; try{ p=decodeURIComponent(arg); }catch(e){} return viewLecDoc(p); }
+  let h='<div class="rule"><b>엠타 강의 정리본</b> (18기·19기·22기·중급반1기·걸타트업1기, 403개) · 회사 사람만 볼 수 있어요. 낱말로 찾으면 <b>최종 정리본</b>이 먼저 나와요. 어사이드에게 "엠타 기준으로 ○○ 찾아줘"라고 물어도 여기서 찾아 답해요.</div>'
+   +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0"><input id="lq" placeholder="찾을 낱말 (예: 구매편익, 1T, 오메클)" value="'+esc(LQ)+'" style="flex:1;min-width:240px;padding:8px 10px;border:1px solid #d0d5de;border-radius:8px"><span class="pbtn" id="lgo">찾기</span>'
+   +'<label class="sub" style="cursor:pointer"><input type="checkbox" id="lonly"'+(LONLY?' checked':'')+'> 정리본만 (작업·검토 기록 빼기)</label></div>'
+   +'<div class="rtabs">'+[['','전체'],...LCOURSES.map(c=>[c,c])].map(([k,t])=>'<span class="'+(LC===k?'on':'')+'" data-lc="'+k+'">'+t+'</span>').join('')+'</div><div id="lres">불러오는 중…</div>';
+  $('#mb').innerHTML=h;
+  const run=()=>{ LQ=$('#lq').value.trim(); viewLec(); }; $('#lgo').onclick=run; $('#lq').onkeydown=e=>{ if(e.key==='Enter') run(); };
+  $('#lonly').onchange=e=>{ LONLY=e.target.checked; viewLec(); };
+  document.querySelectorAll('#mb [data-lc]').forEach(e=>e.onclick=()=>{ LC=e.dataset.lc; viewLec(); });
+  const open=p=>go('lec/'+encodeURIComponent(p));
+  if(LQ){ const {data,error}=await sb.rpc('lecture_search',{p_q:LQ,p_course:LC||null,p_limit:60}); if(error){ if(await expired(error)) return; $('#lres').textContent='찾지 못했어요: '+error.message; return; }
+    const R=(data||[]).filter(x=>!LONLY||lecMain(x.section));
+    $('#lres').innerHTML=R.length?'<div class="sub" style="margin:8px 0">"'+esc(LQ)+'" '+R.length+'개 파일 (많이 나온 순, 정리본 먼저)</div><table><tr><th>기수</th><th>파일</th><th>나온 횟수</th><th>앞뒤 문장</th></tr>'+R.map(x=>'<tr data-lp="'+esc(x.path)+'" style="cursor:pointer"><td class="nw">'+esc(x.course)+'</td><td><b>'+esc(x.title)+'</b><div class="sub">'+esc(x.section||'')+'</div></td><td class="nw">'+x.hits+'</td><td class="sub" style="max-width:520px">'+lecHi(x.snippet.replace(/\s+/g,' '),LQ)+'</td></tr>').join('')+'</table>':'<div class="empty">찾은 파일이 없어요. "정리본만"을 끄거나 다른 낱말로 찾아보세요.</div>';
+  } else { if(!LLIST){ const {data,error}=await sb.from('lectures').select('course,section,path,title,bytes').order('path'); if(error){ if(await expired(error)) return; $('#lres').textContent='불러오지 못했어요: '+error.message; return; } LLIST=data||[]; }
+    const L=LLIST.filter(x=>(!LC||x.course===LC)&&x.course!=='안내'&&(!LONLY||lecMain(x.section))); const G={}; L.forEach(x=>{ const k=x.course+' › '+(x.section||'(맨 위)'); (G[k]=G[k]||[]).push(x); });
+    $('#lres').innerHTML='<div class="sub" style="margin:8px 0">파일 '+L.length+'개 · 제목을 누르면 열려요</div>'+Object.keys(G).map(k=>'<details'+(LC?' open':'')+' style="margin:6px 0;background:#fff;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer"><b>'+esc(k)+'</b> <span class="sub">'+G[k].length+'개</span></summary><div style="margin-top:6px">'+G[k].map(x=>'<div data-lp="'+esc(x.path)+'" style="cursor:pointer;padding:3px 0;color:#1d4ed8">'+esc(x.title)+' <span class="sub">'+Math.round((x.bytes||0)/1024)+'KB</span></div>').join('')+'</div></details>').join(''); }
+  document.querySelectorAll('#lres [data-lp]').forEach(e=>e.onclick=()=>open(e.dataset.lp));
+}
+async function viewLecDoc(path){
+  const {data,error}=await sb.from('lectures').select('course,section,title,content,bytes').eq('path',path).maybeSingle();
+  if(error||!data){ if(error&&await expired(error)) return; $('#mb').innerHTML='<div class="empty">파일을 찾지 못했어요.</div>'; return; }
+  const c=data.content, big=c.length>400000, body=big?c.slice(0,400000):c;
+  $('#mb').innerHTML='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><a href="#lec" class="btn" style="text-decoration:none;color:#333">← 목록</a><b>'+esc(data.course)+'</b><span class="sub">'+esc(data.section||'')+' › '+esc(data.title)+' · '+Math.round((data.bytes||0)/1024)+'KB</span>'+(LQ?'<span class="sub">"'+esc(LQ)+'" '+((c.split(LQ).length-1))+'번 · <span class="pbtn gray" id="lnext" style="padding:2px 10px">다음 위치 ↓</span></span>':'')+'</div>'
+   +(big?'<div class="rule">파일이 커서 앞부분 40만 글자만 보여요. 나머지는 어사이드에게 물어보세요.</div>':'')+'<div class="box" style="line-height:1.65;font-size:14px;max-width:980px">'+lecMd(body,LQ)+'</div>';
+  const marks=[...document.querySelectorAll('#mb mark')]; let i=0; if(marks.length){ setTimeout(()=>marks[0].scrollIntoView({block:'center'}),50); }
+  if($('#lnext')) $('#lnext').onclick=()=>{ if(!marks.length) return; i=(i+1)%marks.length; marks[i].scrollIntoView({block:'center'}); };
 }
 
 /* ---------- 전달사항 (대표님 → 직원) ---------- */
